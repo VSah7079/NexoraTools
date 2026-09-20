@@ -61,7 +61,7 @@ export const App: React.FC = () => {
 
           <Navbar />
 
-          <main className="flex-1 w-full pt-4 sm:pt-6 pb-20 lg:pb-10 relative z-10">
+          <main className="flex-1 w-full pt-4 sm:pt-6 pb-24 sm:pb-28 lg:pb-10 relative z-10">
             <Routes>
               {/* Home */}
               <Route path="/" element={<Home />} />

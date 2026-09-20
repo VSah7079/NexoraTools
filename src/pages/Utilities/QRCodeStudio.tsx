@@ -241,7 +241,7 @@ export const QRCodeStudio: React.FC = () => {
         {/* Left Form Controls */}
         <div className="lg:col-span-6 space-y-6">
           {/* Type Selector Tabs */}
-          <div className="p-1.5 rounded-2xl bg-slate-900 border border-white/10 grid grid-cols-4 gap-1">
+          <div className="p-1.5 rounded-2xl bg-slate-900 border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-1">
             <button
               onClick={() => setQrType('upi')}
               className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${

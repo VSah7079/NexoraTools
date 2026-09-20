@@ -126,11 +126,11 @@ export const DocumentScanner: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Canvas Preview */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl flex items-center justify-center min-h-[460px] overflow-hidden">
-              <div className="p-2 bg-white rounded-lg shadow-2xl max-w-full max-h-[500px] overflow-auto flex items-center justify-center">
+            <div className="p-3 sm:p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl flex items-center justify-center min-h-[300px] sm:min-h-[460px] overflow-hidden">
+              <div className="p-2 bg-white rounded-lg shadow-2xl max-w-full max-h-[360px] sm:max-h-[500px] overflow-auto flex items-center justify-center">
                 <canvas
                   ref={warpedCanvasRef}
-                  className="max-h-[460px] w-auto object-contain border border-slate-200"
+                  className="max-h-[340px] sm:max-h-[460px] w-auto max-w-full object-contain border border-slate-200"
                 />
               </div>
             </div>

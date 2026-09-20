@@ -5,6 +5,8 @@ import { downloadCanvas } from '../../utils/fileHelpers';
 interface DownloadDropdownProps {
   getCanvas: () => HTMLCanvasElement | null;
   baseFilename?: string;
+  defaultFormat?: 'image/jpeg' | 'image/png' | 'image/webp';
+  defaultLabel?: string;
   onPrint?: () => void;
   onExportPDF?: () => void;
   disabled?: boolean;
@@ -14,6 +16,8 @@ interface DownloadDropdownProps {
 export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
   getCanvas,
   baseFilename = 'nexora-export',
+  defaultFormat = 'image/jpeg',
+  defaultLabel,
   onPrint,
   onExportPDF,
   disabled = false,
@@ -48,11 +52,11 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
 
   return (
     <div className={`relative inline-flex items-center rounded-xl shadow-lg shadow-indigo-950/50 ${className}`} ref={dropdownRef}>
-      {/* Primary 1-Click Download Button (JPG) */}
+      {/* Primary 1-Click Download Button */}
       <button
         type="button"
         disabled={disabled}
-        onClick={() => handleDownload('image/jpeg')}
+        onClick={() => handleDownload(defaultFormat)}
         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-l-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
       >
         {downloadedFormat ? (
@@ -60,7 +64,11 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
         ) : (
           <Download className="w-4 h-4" />
         )}
-        <span>{downloadedFormat ? `Saved .${downloadedFormat}!` : 'Download JPG'}</span>
+        <span>
+          {downloadedFormat
+            ? `Saved .${downloadedFormat}!`
+            : defaultLabel || (defaultFormat === 'image/png' ? 'Download PNG' : defaultFormat === 'image/webp' ? 'Download WebP' : 'Download JPG')}
+        </span>
       </button>
 
       {/* Dropdown Toggle */}

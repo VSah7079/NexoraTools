@@ -423,15 +423,15 @@ export const IDMerger: React.FC<IDMergerProps> = ({ defaultDocType = 'aadhaar' }
         </div>
       )}
 
-      {/* Preset Selector */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      {/* Preset Selector - Responsive Wrap */}
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-2xl bg-slate-900/60 border border-white/10 backdrop-blur-xl">
         {DOCUMENT_PRESETS.map((doc) => (
           <button
             key={doc.id}
             onClick={() => setSelectedDocType(doc.id)}
-            className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shadow-xs ${
+            className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs ${
               selectedDocType === doc.id
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-2 ring-indigo-400/40'
+                ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-600/30'
                 : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/10 hover:bg-slate-800'
             }`}
           >
@@ -440,15 +440,15 @@ export const IDMerger: React.FC<IDMergerProps> = ({ defaultDocType = 'aadhaar' }
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         {/* Left Column: Canvas Preview + Upload Slots */}
         <div className="lg:col-span-7 space-y-5">
           {/* Main A4 / Card Output Canvas */}
-          <div className="p-6 rounded-3xl bg-slate-900/80 border border-white/10 shadow-2xl flex items-center justify-center min-h-[480px] overflow-hidden backdrop-blur-xl">
-            <div className="p-3 bg-white rounded-xl shadow-2xl max-w-full max-h-[520px] overflow-auto flex items-center justify-center">
+          <div className="p-3 sm:p-6 rounded-3xl bg-slate-900/80 border border-white/10 shadow-2xl flex items-center justify-center min-h-[300px] sm:min-h-[480px] overflow-hidden backdrop-blur-xl">
+            <div className="p-2 sm:p-3 bg-white rounded-xl shadow-2xl max-w-full max-h-[520px] overflow-auto flex items-center justify-center">
               <canvas
                 ref={canvasRef}
-                className="max-h-[460px] w-auto object-contain border border-slate-200 rounded"
+                className="max-h-[340px] sm:max-h-[460px] w-auto max-w-full object-contain border border-slate-200 rounded"
               />
             </div>
           </div>
