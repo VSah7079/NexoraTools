@@ -2,5 +2,5 @@ import React from 'react';
 import { IDMerger } from './IDMerger';
 
 export const AadhaarMerger: React.FC = () => {
-  return <IDMerger />;
+  return <IDMerger defaultDocType="aadhaar" />;
 };

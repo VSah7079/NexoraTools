@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Search,
-  Moon,
-  Sun,
   Menu,
   X,
   ShieldCheck,
@@ -15,17 +13,15 @@ import {
   Printer,
   Scan,
   Layers,
-  LayoutDashboard,
+  Zap,
 } from 'lucide-react';
 import { NexoraLogo } from '../common/NexoraLogo';
-import { useTheme } from '../../context/ThemeContext';
 import { SearchModal } from './SearchModal';
 
 export const Navbar: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   // Close mobile menu on route change
@@ -48,79 +44,106 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl transition-all">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
+      <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-slate-950/90 backdrop-blur-2xl transition-all shadow-md shadow-black/20">
+        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
             {/* Left: Brand Logo & Navigation */}
-            <div className="flex items-center gap-4 xl:gap-6 min-w-0">
+            <div className="flex items-center gap-3 lg:gap-6 min-w-0">
               <Link to="/" className="flex items-center shrink-0 group cursor-pointer" title="NexoraTools - Home">
                 <NexoraLogo size="md" showBadge={true} />
               </Link>
 
               {/* Desktop Nav Links */}
-              <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 shrink-0">
+              <nav className="hidden xl:flex items-center gap-1.5 shrink-0">
                 {/* Photo Tools Dropdown */}
                 <div
                   className="relative"
                   onMouseEnter={() => setActiveDropdown('photo')}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors whitespace-nowrap cursor-pointer">
-                    <UserCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <button
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      activeDropdown === 'photo' || location.pathname.startsWith('/photo')
+                        ? 'bg-white/10 text-white'
+                        : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="p-1 rounded-md bg-blue-500/20 text-blue-400">
+                      <UserCheck className="w-3.5 h-3.5" />
+                    </div>
                     <span>Photo Tools</span>
-                    <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+                    <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${activeDropdown === 'photo' ? 'rotate-180' : ''}`} />
                   </button>
 
                   {activeDropdown === 'photo' && (
-                    <div className="absolute top-full left-0 mt-1 w-64 p-2 rounded-xl bg-slate-900 border border-slate-700/80 shadow-2xl animate-in fade-in zoom-in-95 duration-150 z-50">
+                    <div className="absolute top-full left-0 mt-1.5 w-72 p-2.5 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-indigo-950/60 animate-in fade-in zoom-in-95 duration-150 z-50">
+                      <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Photo Utilities
+                      </div>
                       <Link
                         to="/photo/passport"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <UserCheck className="w-4 h-4 text-blue-400" />
+                        <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
+                          <UserCheck className="w-4 h-4" />
+                        </div>
                         <div>
-                          <div className="font-semibold">Passport Photo Maker</div>
-                          <div className="text-[10px] text-slate-400">35x45mm, 2x2" presets &amp; ICAO</div>
+                          <div className="font-semibold flex items-center gap-1.5">
+                            Passport Photo Maker
+                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300">Popular</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400">35×45mm, 2×2" presets &amp; print guides</div>
                         </div>
                       </Link>
                       <Link
                         to="/photo/bg-remover"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <Sparkles className="w-4 h-4 text-purple-400" />
+                        <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400 group-hover:scale-105 transition-transform">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
                         <div>
-                          <div className="font-semibold">AI Background Remover</div>
-                          <div className="text-[10px] text-slate-400">Transparent &amp; color replace</div>
+                          <div className="font-semibold flex items-center gap-1.5">
+                            AI Background Remover
+                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300">AI</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400">Transparent, white &amp; studio colors</div>
                         </div>
                       </Link>
                       <Link
                         to="/photo/compress"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <span className="w-4 h-4 flex items-center justify-center font-bold text-emerald-400 text-xs">KB</span>
+                        <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
+                          <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">KB</span>
+                        </div>
                         <div>
                           <div className="font-semibold">Exact KB Compressor</div>
-                          <div className="text-[10px] text-slate-400">Target 20KB, 50KB, 100KB</div>
+                          <div className="text-[10px] text-slate-400">Target 20KB, 50KB, 100KB for forms</div>
                         </div>
                       </Link>
                       <Link
                         to="/photo/resize"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <span className="w-4 h-4 flex items-center justify-center font-bold text-amber-400 text-xs">px</span>
+                        <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
+                          <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">px</span>
+                        </div>
                         <div>
                           <div className="font-semibold">Image Resizer &amp; DPI</div>
-                          <div className="text-[10px] text-slate-400">Pixels, mm, cm, 300 DPI</div>
+                          <div className="text-[10px] text-slate-400">Pixels, mm, cm, 300 DPI support</div>
                         </div>
                       </Link>
                       <Link
                         to="/photo/signature"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <span className="w-4 h-4 flex items-center justify-center font-bold text-rose-400 text-xs">✍</span>
+                        <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400 group-hover:scale-105 transition-transform">
+                          <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">✍</span>
+                        </div>
                         <div>
                           <div className="font-semibold">Signature Tool</div>
-                          <div className="text-[10px] text-slate-400">Clean paper tint &amp; enhance</div>
+                          <div className="text-[10px] text-slate-400">Paper tint cleaning &amp; ink contrast</div>
                         </div>
                       </Link>
                     </div>
@@ -133,32 +156,50 @@ export const Navbar: React.FC = () => {
                   onMouseEnter={() => setActiveDropdown('id')}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors whitespace-nowrap cursor-pointer">
-                    <CreditCard className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                  <button
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      activeDropdown === 'id' || location.pathname.startsWith('/id')
+                        ? 'bg-white/10 text-white'
+                        : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="p-1 rounded-md bg-purple-500/20 text-purple-400">
+                      <CreditCard className="w-3.5 h-3.5" />
+                    </div>
                     <span>ID Cards</span>
-                    <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+                    <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${activeDropdown === 'id' ? 'rotate-180' : ''}`} />
                   </button>
 
                   {activeDropdown === 'id' && (
-                    <div className="absolute top-full left-0 mt-1 w-64 p-2 rounded-xl bg-slate-900 border border-slate-700/80 shadow-2xl animate-in fade-in zoom-in-95 duration-150 z-50">
+                    <div className="absolute top-full left-0 mt-1.5 w-72 p-2.5 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-purple-950/60 animate-in fade-in zoom-in-95 duration-150 z-50">
+                      <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        ID Card Merging
+                      </div>
                       <Link
                         to="/id/merger"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <CreditCard className="w-4 h-4 text-indigo-400" />
+                        <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
+                          <CreditCard className="w-4 h-4" />
+                        </div>
                         <div>
-                          <div className="font-semibold">Front + Back ID Merger</div>
-                          <div className="text-[10px] text-slate-400">Aadhaar, Voter, PAN, DL</div>
+                          <div className="font-semibold flex items-center gap-1.5">
+                            Front + Back ID Merger
+                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300">Popular</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400">Aadhaar, Voter, PAN, Driving Licence</div>
                         </div>
                       </Link>
                       <Link
                         to="/id/aadhaar"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                        <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
                         <div>
                           <div className="font-semibold">Aadhaar Card A4 Sheet</div>
-                          <div className="text-[10px] text-slate-400">A4 print ready layout</div>
+                          <div className="text-[10px] text-slate-400">CR80 standard card &amp; A4 print layout</div>
                         </div>
                       </Link>
                     </div>
@@ -171,39 +212,56 @@ export const Navbar: React.FC = () => {
                   onMouseEnter={() => setActiveDropdown('pdf')}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors whitespace-nowrap cursor-pointer">
-                    <FileText className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <button
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      activeDropdown === 'pdf' || location.pathname.startsWith('/pdf')
+                        ? 'bg-white/10 text-white'
+                        : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="p-1 rounded-md bg-rose-500/20 text-rose-400">
+                      <FileText className="w-3.5 h-3.5" />
+                    </div>
                     <span>PDF Suite</span>
-                    <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+                    <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${activeDropdown === 'pdf' ? 'rotate-180' : ''}`} />
                   </button>
 
                   {activeDropdown === 'pdf' && (
-                    <div className="absolute top-full left-0 mt-1 w-64 p-2 rounded-xl bg-slate-900 border border-slate-700/80 shadow-2xl animate-in fade-in zoom-in-95 duration-150 z-50">
+                    <div className="absolute top-full left-0 mt-1.5 w-72 p-2.5 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-rose-950/60 animate-in fade-in zoom-in-95 duration-150 z-50">
+                      <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        PDF Operations
+                      </div>
                       <Link
                         to="/pdf/image-to-pdf"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <FileText className="w-4 h-4 text-red-400" />
+                        <div className="p-2 rounded-lg bg-red-500/20 text-red-400 group-hover:scale-105 transition-transform">
+                          <FileText className="w-4 h-4" />
+                        </div>
                         <div>
                           <div className="font-semibold">Image to PDF</div>
-                          <div className="text-[10px] text-slate-400">Multi-image &amp; drag reorder</div>
+                          <div className="text-[10px] text-slate-400">Multi-image &amp; drag-to-reorder</div>
                         </div>
                       </Link>
                       <Link
                         to="/pdf/pdf-to-image"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <span className="w-4 h-4 font-bold text-amber-400 text-xs">JPG</span>
+                        <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
+                          <span className="w-4 h-4 font-bold text-xs flex items-center justify-center">JPG</span>
+                        </div>
                         <div>
                           <div className="font-semibold">PDF to Image</div>
-                          <div className="text-[10px] text-slate-400">Extract high-res pages</div>
+                          <div className="text-[10px] text-slate-400">Extract high-resolution pages</div>
                         </div>
                       </Link>
                       <Link
                         to="/pdf/merge"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <Layers className="w-4 h-4 text-blue-400" />
+                        <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
+                          <Layers className="w-4 h-4" />
+                        </div>
                         <div>
                           <div className="font-semibold">Merge PDF Files</div>
                           <div className="text-[10px] text-slate-400">Combine multiple documents</div>
@@ -211,19 +269,23 @@ export const Navbar: React.FC = () => {
                       </Link>
                       <Link
                         to="/pdf/split"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <span className="w-4 h-4 font-bold text-violet-400 text-xs">✂</span>
+                        <div className="p-2 rounded-lg bg-violet-500/20 text-violet-400 group-hover:scale-105 transition-transform">
+                          <span className="w-4 h-4 font-bold text-xs flex items-center justify-center">✂</span>
+                        </div>
                         <div>
                           <div className="font-semibold">Split &amp; Extract PDF</div>
-                          <div className="text-[10px] text-slate-400">Extract ranges or pages</div>
+                          <div className="text-[10px] text-slate-400">Extract page ranges or split all</div>
                         </div>
                       </Link>
                       <Link
                         to="/pdf/compress"
-                        className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
                       >
-                        <span className="w-4 h-4 font-bold text-emerald-400 text-xs">▼</span>
+                        <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
+                          <span className="w-4 h-4 font-bold text-xs flex items-center justify-center">▼</span>
+                        </div>
                         <div>
                           <div className="font-semibold">Compress PDF</div>
                           <div className="text-[10px] text-slate-400">Reduce document file size</div>
@@ -236,71 +298,106 @@ export const Navbar: React.FC = () => {
                 {/* Direct Links */}
                 <Link
                   to="/print/passport-sheet"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors whitespace-nowrap"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
+                    location.pathname.startsWith('/print')
+                      ? 'bg-white/10 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
                 >
-                  <Printer className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <div className="p-1 rounded-md bg-emerald-500/20 text-emerald-400">
+                    <Printer className="w-3.5 h-3.5" />
+                  </div>
                   <span>Passport Sheet</span>
                 </Link>
 
                 <Link
                   to="/scanner"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors whitespace-nowrap"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
+                    location.pathname.startsWith('/scanner')
+                      ? 'bg-white/10 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
                 >
-                  <Scan className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <div className="p-1 rounded-md bg-cyan-500/20 text-cyan-400">
+                    <Scan className="w-3.5 h-3.5" />
+                  </div>
                   <span>Doc Scanner</span>
                 </Link>
 
                 <Link
                   to="/batch"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors whitespace-nowrap"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
+                    location.pathname.startsWith('/batch')
+                      ? 'bg-white/10 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
                 >
-                  <span className="text-pink-400 font-bold text-xs shrink-0">⚡</span>
+                  <div className="p-1 rounded-md bg-pink-500/20 text-pink-400">
+                    <Zap className="w-3.5 h-3.5" />
+                  </div>
                   <span>Batch Tools</span>
+                </Link>
+              </nav>
+
+              {/* Compact Nav on Medium-Large screens (1024px - 1279px) */}
+              <nav className="hidden lg:flex xl:hidden items-center gap-1 shrink-0">
+                <Link
+                  to="/photo/passport"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Photos</span>
+                </Link>
+                <Link
+                  to="/id/merger"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  <CreditCard className="w-3.5 h-3.5 text-purple-400" />
+                  <span>ID Cards</span>
+                </Link>
+                <Link
+                  to="/pdf/image-to-pdf"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5 text-rose-400" />
+                  <span>PDFs</span>
+                </Link>
+                <Link
+                  to="/print/passport-sheet"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  <Printer className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Print</span>
+                </Link>
+                <Link
+                  to="/scanner"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  <Scan className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Scanner</span>
                 </Link>
               </nav>
             </div>
 
             {/* Right Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
-              {/* Search Modal Trigger */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Search Modal Trigger Button */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer whitespace-nowrap"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-xs text-slate-400 hover:text-slate-200 transition-all cursor-pointer whitespace-nowrap shadow-xs"
               >
                 <Search className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span className="hidden sm:inline whitespace-nowrap">Search utilities...</span>
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-950 rounded border border-slate-700 whitespace-nowrap">
+                <span className="hidden sm:inline whitespace-nowrap">Search tools...</span>
+                <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-950 rounded border border-white/10 whitespace-nowrap">
                   Ctrl+K
                 </kbd>
               </button>
 
-              {/* Theme Toggle */}
-              <button
-                onClick={toggleTheme}
-                aria-label="Toggle theme"
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition-colors cursor-pointer shrink-0"
-              >
-                {theme === 'dark' ? (
-                  <Sun className="w-4 h-4 text-amber-400" />
-                ) : (
-                  <Moon className="w-4 h-4 text-indigo-400" />
-                )}
-              </button>
-
-              {/* Admin / Health Dashboard link */}
-              <Link
-                to="/admin"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition-colors whitespace-nowrap shrink-0"
-                title="System health and local statistics"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                <span>Dashboard</span>
-              </Link>
-
               {/* Mobile Hamburger */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer"
+                className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 cursor-pointer"
+                aria-label="Open menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -310,71 +407,77 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile Menu Slideout */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-800 bg-slate-950 p-4 space-y-3 animate-in slide-in-from-top duration-200 max-h-[85vh] overflow-y-auto">
-            <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider px-2">
+          <div className="lg:hidden border-t border-white/10 bg-slate-950/95 backdrop-blur-2xl p-4 space-y-4 animate-in slide-in-from-top duration-200 max-h-[85vh] overflow-y-auto">
+            <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider px-1">
               Popular Utilities
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               <Link
                 to="/photo/passport"
-                className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2"
+                className="p-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-2.5 hover:border-indigo-500/40 transition-colors"
               >
-                <UserCheck className="w-4 h-4 text-blue-400" />
-                Passport Photo
+                <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <span>Passport Photo</span>
               </Link>
               <Link
                 to="/photo/bg-remover"
-                className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2"
+                className="p-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-2.5 hover:border-indigo-500/40 transition-colors"
               >
-                <Sparkles className="w-4 h-4 text-purple-400" />
-                AI BG Remover
+                <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <span>AI BG Remover</span>
               </Link>
               <Link
                 to="/print/passport-sheet"
-                className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2"
+                className="p-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-2.5 hover:border-indigo-500/40 transition-colors"
               >
-                <Printer className="w-4 h-4 text-emerald-400" />
-                Passport Sheet
+                <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <Printer className="w-4 h-4" />
+                </div>
+                <span>Passport Sheet</span>
               </Link>
               <Link
                 to="/id/merger"
-                className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2"
+                className="p-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-2.5 hover:border-indigo-500/40 transition-colors"
               >
-                <CreditCard className="w-4 h-4 text-indigo-400" />
-                ID Card Merge
+                <div className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <span>ID Card Merge</span>
               </Link>
               <Link
                 to="/pdf/image-to-pdf"
-                className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2"
+                className="p-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-2.5 hover:border-indigo-500/40 transition-colors"
               >
-                <FileText className="w-4 h-4 text-rose-400" />
-                Image to PDF
+                <div className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <span>Image to PDF</span>
               </Link>
               <Link
                 to="/scanner"
-                className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 flex items-center gap-2"
+                className="p-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-2.5 hover:border-indigo-500/40 transition-colors"
               >
-                <Scan className="w-4 h-4 text-cyan-400" />
-                Doc Scanner
+                <div className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400">
+                  <Scan className="w-4 h-4" />
+                </div>
+                <span>Doc Scanner</span>
               </Link>
             </div>
 
-            <div className="pt-2 border-t border-slate-800 space-y-1">
-              <Link
-                to="/admin"
-                className="block px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900"
-              >
-                System Dashboard &amp; Stats
-              </Link>
+            <div className="pt-2 border-t border-white/10 space-y-1">
               <Link
                 to="/privacy"
-                className="block px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900"
+                className="block px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-900 transition-colors"
               >
-                Privacy &amp; Zero-Storage Policy
+                Privacy &amp; Zero-Storage Guarantee
               </Link>
               <Link
                 to="/how-it-works"
-                className="block px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900"
+                className="block px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-900 transition-colors"
               >
                 How It Works &amp; FAQ
               </Link>

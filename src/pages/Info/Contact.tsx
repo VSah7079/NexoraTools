@@ -14,55 +14,57 @@ export const Contact: React.FC = () => {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 space-y-8">
       <ToolHeader
         title="Contact Nexora Support"
-        description="Questions, feedback, or feature suggestions for Nexora Lab Technologies."
+        description="Questions, feedback, or feature requests for Nexora Lab Technologies."
         categoryName="Support"
         categoryPath="/contact"
       />
 
-      <div className="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-6">
+      <div className="p-6 sm:p-10 rounded-3xl bg-slate-900/80 border border-white/10 backdrop-blur-xl space-y-6 shadow-xl">
         {submitted ? (
-          <div className="py-12 text-center space-y-3">
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-            <h3 className="text-xl font-bold text-white">Thank You for Your Feedback!</h3>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Our engineering team at Nexora Lab Technologies has received your message and will review it promptly.
+          <div className="py-12 text-center space-y-3 animate-in fade-in">
+            <div className="p-4 rounded-full bg-emerald-500/20 text-emerald-400 w-fit mx-auto border border-emerald-500/30">
+              <CheckCircle2 className="w-12 h-12" />
+            </div>
+            <h3 className="text-xl font-heading font-bold text-white">Thank You for Your Feedback!</h3>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Our engineering team at Nexora Lab Technologies has received your message and will review your feature request promptly.
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
             <div>
-              <label className="text-slate-300 font-semibold block mb-1.5">Your Name</label>
+              <label className="text-slate-300 font-bold block mb-1.5">Your Name</label>
               <input
                 required
                 type="text"
                 placeholder="Enter your name..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-950/80 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-xs sm:text-sm"
               />
             </div>
 
             <div>
-              <label className="text-slate-300 font-semibold block mb-1.5">Email Address</label>
+              <label className="text-slate-300 font-bold block mb-1.5">Email Address</label>
               <input
                 required
                 type="email"
                 placeholder="name@example.com"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-950/80 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-xs sm:text-sm"
               />
             </div>
 
             <div>
-              <label className="text-slate-300 font-semibold block mb-1.5">Message / Tool Request</label>
+              <label className="text-slate-300 font-bold block mb-1.5">Message / Tool Feature Request</label>
               <textarea
                 required
                 rows={4}
-                placeholder="Let us know what feature or document template you'd like added..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500"
+                placeholder="Tell us what tool, card template, or dimension preset you'd like added..."
+                className="w-full px-4 py-3 rounded-2xl bg-slate-950/80 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-xs sm:text-sm"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-950/40 transition-all cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm shadow-xl shadow-indigo-950/50 transition-all cursor-pointer flex items-center justify-center gap-2 mt-2"
             >
               <Send className="w-4 h-4" />
               <span>Submit Message</span>

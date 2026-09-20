@@ -14,10 +14,10 @@ export const NexoraLogo: React.FC<NexoraLogoProps> = ({
   className = '',
 }) => {
   const iconSizes = {
-    sm: 'w-8 h-8',
-    md: 'w-9 h-9',
-    lg: 'w-12 h-12',
-    xl: 'w-16 h-16',
+    sm: 'w-7 h-7 sm:w-8 sm:h-8',
+    md: 'w-8 h-8 sm:w-9 sm:h-9',
+    lg: 'w-10 h-10 sm:w-12 sm:h-12',
+    xl: 'w-14 h-14 sm:w-16 sm:h-16',
   };
 
   const textSizes = {
@@ -31,20 +31,20 @@ export const NexoraLogo: React.FC<NexoraLogoProps> = ({
     <div className={`inline-flex items-center gap-2.5 select-none group ${className}`}>
       {/* Nexora Prism Nexus Icon */}
       <div
-        className={`relative ${iconSizes[size]} shrink-0 transition-transform duration-300 group-hover:scale-105`}
+        className={`relative ${iconSizes[size]} shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:rotate-1`}
       >
         <svg
           viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-[0_4px_16px_rgba(6,182,212,0.35)]"
+          className="w-full h-full drop-shadow-[0_4px_16px_rgba(6,182,212,0.4)]"
         >
           <defs>
             {/* Outer Border Glowing Gradient */}
             <linearGradient id="nexoraBorder" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#00F0FF" />
-              <stop offset="40%" stopColor="#3B82F6" />
-              <stop offset="80%" stopColor="#8B5CF6" />
+              <stop offset="35%" stopColor="#3B82F6" />
+              <stop offset="70%" stopColor="#8B5CF6" />
               <stop offset="100%" stopColor="#EC4899" />
             </linearGradient>
 
@@ -94,7 +94,7 @@ export const NexoraLogo: React.FC<NexoraLogoProps> = ({
             strokeWidth="3.2"
           />
 
-          {/* Subtle Inner Glass Highlight */}
+          {/* Inner Glass Highlight Ring */}
           <rect
             x="7.5"
             y="7.5"
@@ -102,7 +102,7 @@ export const NexoraLogo: React.FC<NexoraLogoProps> = ({
             height="85"
             rx="20.5"
             fill="none"
-            stroke="rgba(255, 255, 255, 0.08)"
+            stroke="rgba(255, 255, 255, 0.12)"
             strokeWidth="1"
           />
 
@@ -146,7 +146,7 @@ export const NexoraLogo: React.FC<NexoraLogoProps> = ({
       {!iconOnly && (
         <div className="flex items-center gap-2 leading-none">
           <span
-            className={`font-black tracking-tight text-white group-hover:text-slate-100 transition-colors ${textSizes[size]}`}
+            className={`font-heading font-black tracking-tight text-white group-hover:text-slate-100 transition-colors ${textSizes[size]}`}
           >
             Nexora
             <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 bg-clip-text text-transparent ml-0.5">
@@ -155,7 +155,8 @@ export const NexoraLogo: React.FC<NexoraLogoProps> = ({
           </span>
 
           {showBadge && (
-            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30 shadow-xs whitespace-nowrap">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-xs whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               100% Free
             </span>
           )}

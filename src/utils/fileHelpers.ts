@@ -103,3 +103,88 @@ export async function compressToTargetKB(
     height: currentCanvas.height,
   };
 }
+
+/**
+ * Direct Print Canvas Utility:
+ * Isolates ONLY the canvas document/photo into a dedicated print iframe
+ * so that ZERO website UI, navbar, or buttons get printed.
+ */
+export function printCanvas(canvas: HTMLCanvasElement, title: string = 'Print Document') {
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.98);
+  const isLandscape = canvas.width > canvas.height;
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.visibility = 'hidden';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  doc.open();
+  doc.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${title}</title>
+        <style>
+          @page {
+            size: ${isLandscape ? 'A4 landscape' : 'A4 portrait'};
+            margin: 0mm;
+          }
+          * {
+            box-sizing: border-box;
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #FFFFFF !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            display: block;
+          }
+        </style>
+      </head>
+      <body>
+        <img id="print-image" src="${dataUrl}" alt="Print Document" />
+        <script>
+          const img = document.getElementById('print-image');
+          function doPrint() {
+            window.focus();
+            window.print();
+            setTimeout(function() {
+              try {
+                if (window.parent && window.frameElement) {
+                  window.parent.document.body.removeChild(window.frameElement);
+                }
+              } catch (e) {}
+            }, 1000);
+          }
+          if (img.complete) {
+            doPrint();
+          } else {
+            img.onload = doPrint;
+          }
+        </script>
+      </body>
+    </html>
+  `);
+  doc.close();
+}
+

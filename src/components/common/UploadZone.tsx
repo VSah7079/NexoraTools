@@ -18,8 +18,8 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
   accept = 'image/jpeg,image/png,image/webp,image/jpg',
   multiple = false,
   maxSizeMB = 25,
-  title = 'Click or drag files here to upload',
-  subtitle = 'Supports JPG, PNG, WebP & PDFs up to 25MB',
+  title = 'Select or drag & drop files here',
+  subtitle = 'Supports JPG, PNG, WebP & PDF files up to 25MB',
   allowCamera = true,
   className = '',
 }) => {
@@ -103,12 +103,15 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative group cursor-pointer border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center transition-all duration-300 ${
+        className={`relative group cursor-pointer border-2 border-dashed rounded-3xl p-8 sm:p-14 text-center transition-all duration-300 overflow-hidden ${
           isDragging
-            ? 'border-indigo-400 bg-indigo-500/10 shadow-lg shadow-indigo-500/20 scale-[1.01]'
-            : 'border-slate-700/80 hover:border-indigo-500/50 bg-slate-900/60 hover:bg-slate-900/90'
+            ? 'border-indigo-400 bg-indigo-500/15 shadow-2xl shadow-indigo-500/30 scale-[1.01]'
+            : 'border-white/15 hover:border-indigo-500/50 bg-slate-900/70 hover:bg-slate-900/95 backdrop-blur-xl shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10'
         }`}
       >
+        {/* Subtle ambient light inside upload zone */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-500/20 transition-all duration-500" />
+
         <input
           ref={fileInputRef}
           type="file"
@@ -129,28 +132,28 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           />
         )}
 
-        <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="relative z-10 flex flex-col items-center justify-center space-y-4">
           <div className="relative">
-            <div className="p-4 rounded-2xl bg-gradient-to-tr from-indigo-600/30 to-sky-500/30 text-indigo-400 border border-indigo-500/30 group-hover:scale-110 group-hover:border-indigo-400 transition-transform duration-300">
-              <UploadCloud className="w-10 h-10 animate-pulse text-indigo-400" />
+            <div className="p-5 rounded-3xl bg-gradient-to-tr from-indigo-600/30 via-cyan-500/20 to-purple-600/30 text-indigo-400 border border-white/10 group-hover:scale-110 group-hover:border-indigo-400 transition-transform duration-300 shadow-xl shadow-indigo-950/40">
+              <UploadCloud className="w-10 h-10 sm:w-12 sm:h-12 text-cyan-400 group-hover:text-indigo-300 transition-colors" />
             </div>
-            <div className="absolute -bottom-1 -right-1 p-1 rounded-md bg-slate-800 text-sky-400 border border-slate-700 shadow-sm">
-              <ImageIcon className="w-3.5 h-3.5" />
+            <div className="absolute -bottom-1 -right-1 p-1.5 rounded-xl bg-slate-900 text-sky-400 border border-white/10 shadow-md">
+              <ImageIcon className="w-4 h-4" />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <h4 className="text-lg font-semibold text-white group-hover:text-indigo-300 transition-colors">
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h4 className="text-lg sm:text-xl font-heading font-bold text-white group-hover:text-indigo-300 transition-colors">
               {title}
             </h4>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-slate-400">
               {subtitle}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/90 text-slate-300 border border-slate-700/60">
-              <FileText className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all group-hover:scale-105">
+              <FileText className="w-3.5 h-3.5" />
               Browse Files
             </span>
 
@@ -161,23 +164,23 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
                   e.stopPropagation();
                   cameraInputRef.current?.click();
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/60 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10 transition-colors"
               >
                 <Camera className="w-3.5 h-3.5 text-sky-400" />
-                Take Photo
+                Capture with Camera
               </button>
             )}
 
-            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] text-slate-400 bg-slate-800/50">
+            <span className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-xl text-[11px] text-slate-400 bg-slate-800/60 border border-white/5">
               <Clipboard className="w-3 h-3 text-slate-400" />
-              Paste (Ctrl+V)
+              Direct Paste (Ctrl+V)
             </span>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-center font-medium">
+        <div className="mt-3 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-center font-medium animate-in fade-in">
           {error}
         </div>
       )}

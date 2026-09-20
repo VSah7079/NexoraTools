@@ -70,8 +70,10 @@ export function calculateSheetLayout(
   let cols = maxCols;
   let rows = maxRows;
 
-  if (!settings.autoFit && settings.columns > 0 && settings.rows > 0) {
+  if (settings.columns && settings.columns > 0) {
     cols = Math.min(settings.columns, maxCols);
+  }
+  if (settings.rows && settings.rows > 0) {
     rows = Math.min(settings.rows, maxRows);
   }
 

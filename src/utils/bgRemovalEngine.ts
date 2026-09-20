@@ -74,37 +74,40 @@ export function compositeWithOriginal(
   const outImgData = outCtx.getImageData(0, 0, width, height);
   const outData = outImgData.data;
 
-  // Ultra-protective threshold (default: 3% = 8/255)
-  // Keeps all clothing, sleeves matching background, arms, and hair 100% intact!
-  const thresholdVal = Math.max(1, Math.round(((options.threshold ?? 4) / 100) * 255));
-  const solidVal = Math.min(255, thresholdVal + 30);
-
+  // Natural High-Fidelity Alpha Compositing:
+  // Preserves 100% of subject's original pixels, with smooth anti-aliased subpixel edge blending.
+  // No harsh clamping, no old-background fringe or halo around hair/ears/clothes.
   for (let i = 0; i < origData.length; i += 4) {
-    const maskAlpha = maskData[i + 3];
+    const alpha = maskData[i + 3]; // 0 to 255 continuous neural alpha matte
 
-    if (maskAlpha <= thresholdVal) {
-      // Background pixel (behind the subject)
+    if (alpha <= 2) {
+      // Complete background pixel
       if (options.backgroundColor === 'transparent') {
+        outData[i] = 0;
+        outData[i + 1] = 0;
+        outData[i + 2] = 0;
         outData[i + 3] = 0;
       }
-    } else if (maskAlpha >= solidVal) {
-      // 100% Foreground: Bit-exact copy of original photo pixel
+    } else if (alpha >= 252) {
+      // 100% Solid subject pixel: Exact copy from original photo
       outData[i] = origData[i];
       outData[i + 1] = origData[i + 1];
       outData[i + 2] = origData[i + 2];
       outData[i + 3] = 255;
     } else {
-      // Smooth anti-aliased edge blending
-      const blend = (maskAlpha - thresholdVal) / (solidVal - thresholdVal);
+      // Smooth Subpixel Alpha Transition
+      const normAlpha = alpha / 255;
       if (options.backgroundColor === 'transparent') {
+        // Transparent PNG mode: preserve original subject RGB with continuous alpha
         outData[i] = origData[i];
         outData[i + 1] = origData[i + 1];
         outData[i + 2] = origData[i + 2];
-        outData[i + 3] = Math.round(blend * 255);
+        outData[i + 3] = alpha;
       } else {
-        outData[i] = Math.round(origData[i] * blend + outData[i] * (1 - blend));
-        outData[i + 1] = Math.round(origData[i + 1] * blend + outData[i + 1] * (1 - blend));
-        outData[i + 2] = Math.round(origData[i + 2] * blend + outData[i + 2] * (1 - blend));
+        // Color Background mode: smoothly blend original RGB over the background fill
+        outData[i] = Math.round(origData[i] * normAlpha + outData[i] * (1 - normAlpha));
+        outData[i + 1] = Math.round(origData[i + 1] * normAlpha + outData[i + 1] * (1 - normAlpha));
+        outData[i + 2] = Math.round(origData[i + 2] * normAlpha + outData[i + 2] * (1 - normAlpha));
         outData[i + 3] = 255;
       }
     }

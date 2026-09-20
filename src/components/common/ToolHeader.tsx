@@ -21,40 +21,48 @@ export const ToolHeader: React.FC<ToolHeaderProps> = ({
   actions,
 }) => {
   return (
-    <div className="mb-6 space-y-3">
+    <div className="mb-8 space-y-3">
+      {/* Breadcrumb Bar */}
       <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Link to="/" className="hover:text-indigo-400 transition-colors flex items-center gap-1">
+        <Link
+          to="/"
+          className="hover:text-indigo-400 transition-colors flex items-center gap-1.5 px-2 py-0.5 rounded-lg hover:bg-white/5"
+        >
           <ArrowLeft className="w-3.5 h-3.5" />
-          Home
+          <span>Home</span>
         </Link>
         <ChevronRight className="w-3 h-3 text-slate-600" />
-        <Link to={categoryPath} className="hover:text-indigo-400 transition-colors capitalize">
+        <Link
+          to={categoryPath}
+          className="hover:text-indigo-400 transition-colors capitalize px-2 py-0.5 rounded-lg hover:bg-white/5"
+        >
           {categoryName}
         </Link>
         <ChevronRight className="w-3 h-3 text-slate-600" />
-        <span className="text-slate-300 font-medium truncate max-w-[200px] sm:max-w-none">
+        <span className="text-slate-200 font-medium truncate max-w-[200px] sm:max-w-none px-1">
           {title}
         </span>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+      {/* Main Title & Action Strip */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-black text-white tracking-tight">
               {title}
             </h1>
             {badge && (
-              <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="px-3 py-1 text-xs font-extrabold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-xs">
                 {badge}
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs sm:text-sm text-slate-400 max-w-2xl">
+          <p className="text-xs sm:text-sm text-slate-400 max-w-3xl leading-relaxed">
             {description}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0 pt-2 md:pt-0">
           <PrivacyBadge minimal />
           {actions}
         </div>

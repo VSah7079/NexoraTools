@@ -1,5 +1,6 @@
 /**
- * Perspective Warp and Document Scanner Algorithms for Nexora Tools
+ * Perspective Warp, Document Scanner & Adobe Scan Style Intelligent ID Card Auto-Detection Algorithms
+ * for Nexora Tools (Aadhaar, Voter ID, PAN, Driving Licence, Passport)
  */
 
 export interface Point {
@@ -77,6 +78,7 @@ export function getPerspectiveTransformMatrix(
 
 /**
  * Applies Perspective Warp from 4 corner points of source image onto a destination canvas
+ * Eliminates perspective skew, trapezoid distortion, and background borders.
  */
 export function warpPerspective(
   sourceCanvas: HTMLCanvasElement,
@@ -182,7 +184,267 @@ export function warpPerspective(
 }
 
 /**
- * Apply Document Enhancement Filters
+ * Adobe Scan-Grade Intelligent ID Card & Aadhaar Auto-Detector.
+ * Accurately detects card boundary corners across mobile camera photos (portrait or landscape),
+ * table surfaces, bedsheets, cloth, shadows, and scanner sheets without cutting off content.
+ */
+export function autoDetectCardCorners(
+  canvas: HTMLCanvasElement
+): [Point, Point, Point, Point] {
+  const width = canvas.width;
+  const height = canvas.height;
+  const ctx = canvas.getContext('2d');
+  
+  // Safe default: Full card frame with 2% inset
+  const defaultFullCrop: [Point, Point, Point, Point] = [
+    { x: Math.round(width * 0.02), y: Math.round(height * 0.02) },
+    { x: Math.round(width * 0.98), y: Math.round(height * 0.02) },
+    { x: Math.round(width * 0.98), y: Math.round(height * 0.98) },
+    { x: Math.round(width * 0.02), y: Math.round(height * 0.98) },
+  ];
+
+  if (!ctx || width < 20 || height < 20) {
+    return defaultFullCrop;
+  }
+
+  // 1. Downsample to standardized size for robust computer vision contour processing
+  const maxDim = 400;
+  const scale = Math.max(1, Math.max(width, height) / maxDim);
+  const sw = Math.floor(width / scale);
+  const sh = Math.floor(height / scale);
+
+  const smCanvas = document.createElement('canvas');
+  smCanvas.width = sw;
+  smCanvas.height = sh;
+  const smCtx = smCanvas.getContext('2d');
+  if (!smCtx) return defaultFullCrop;
+
+  smCtx.drawImage(canvas, 0, 0, sw, sh);
+  const imgData = smCtx.getImageData(0, 0, sw, sh);
+  const data = imgData.data;
+
+  // 2. Convert to Grayscale with 3x3 Gaussian smoothing to suppress fabric/bedsheet texture
+  const gray = new Float32Array(sw * sh);
+  for (let y = 0; y < sh; y++) {
+    for (let x = 0; x < sw; x++) {
+      const idx = (y * sw + x) * 4;
+      gray[y * sw + x] = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+    }
+  }
+
+  const blurred = new Float32Array(sw * sh);
+  for (let y = 1; y < sh - 1; y++) {
+    for (let x = 1; x < sw - 1; x++) {
+      const sum =
+        gray[(y - 1) * sw + (x - 1)] * 1 + gray[(y - 1) * sw + x] * 2 + gray[(y - 1) * sw + (x + 1)] * 1 +
+        gray[y * sw + (x - 1)] * 2 + gray[y * sw + x] * 4 + gray[y * sw + (x + 1)] * 2 +
+        gray[(y + 1) * sw + (x - 1)] * 1 + gray[(y + 1) * sw + x] * 2 + gray[(y + 1) * sw + (x + 1)] * 1;
+      blurred[y * sw + x] = sum / 16;
+    }
+  }
+
+  // 3. Compute Sobel Gradient Magnitude & Color Variation
+  const gradient = new Float32Array(sw * sh);
+  let maxGrad = 0;
+
+  for (let y = 1; y < sh - 1; y++) {
+    for (let x = 1; x < sw - 1; x++) {
+      const gx =
+        -1 * blurred[(y - 1) * sw + (x - 1)] + 1 * blurred[(y - 1) * sw + (x + 1)] +
+        -2 * blurred[y * sw + (x - 1)] + 2 * blurred[y * sw + (x + 1)] +
+        -1 * blurred[(y + 1) * sw + (x - 1)] + 1 * blurred[(y + 1) * sw + (x + 1)];
+
+      const gy =
+        -1 * blurred[(y - 1) * sw + (x - 1)] - 2 * blurred[(y - 1) * sw + x] - 1 * blurred[(y - 1) * sw + (x + 1)] +
+        1 * blurred[(y + 1) * sw + (x - 1)] + 2 * blurred[(y + 1) * sw + x] + 1 * blurred[(y + 1) * sw + (x + 1)];
+
+      const mag = Math.hypot(gx, gy);
+      gradient[y * sw + x] = mag;
+      if (mag > maxGrad) maxGrad = mag;
+    }
+  }
+
+  // 4. Inward Scanning for Strong Continuous Boundary Edges
+  const edgeThreshold = Math.max(25, maxGrad * 0.28);
+  const padX = Math.max(2, Math.floor(sw * 0.02));
+  const padY = Math.max(2, Math.floor(sh * 0.02));
+
+  // Top Boundary
+  let topBound = padY;
+  for (let y = padY; y < Math.floor(sh * 0.45); y++) {
+    let strongCount = 0;
+    for (let x = padX; x < sw - padX; x++) {
+      if (gradient[y * sw + x] > edgeThreshold) strongCount++;
+    }
+    if (strongCount > sw * 0.28) {
+      topBound = y;
+      break;
+    }
+  }
+
+  // Bottom Boundary
+  let bottomBound = sh - padY;
+  for (let y = sh - padY - 1; y > Math.floor(sh * 0.55); y--) {
+    let strongCount = 0;
+    for (let x = padX; x < sw - padX; x++) {
+      if (gradient[y * sw + x] > edgeThreshold) strongCount++;
+    }
+    if (strongCount > sw * 0.28) {
+      bottomBound = y;
+      break;
+    }
+  }
+
+  // Left Boundary
+  let leftBound = padX;
+  for (let x = padX; x < Math.floor(sw * 0.45); x++) {
+    let strongCount = 0;
+    for (let y = topBound; y <= bottomBound; y++) {
+      if (gradient[y * sw + x] > edgeThreshold) strongCount++;
+    }
+    if (strongCount > (bottomBound - topBound) * 0.28) {
+      leftBound = x;
+      break;
+    }
+  }
+
+  // Right Boundary
+  let rightBound = sw - padX;
+  for (let x = sw - padX - 1; x > Math.floor(sw * 0.55); x--) {
+    let strongCount = 0;
+    for (let y = topBound; y <= bottomBound; y++) {
+      if (gradient[y * sw + x] > edgeThreshold) strongCount++;
+    }
+    if (strongCount > (bottomBound - topBound) * 0.28) {
+      rightBound = x;
+      break;
+    }
+  }
+
+  // 5. Corner Points Calculation & Validation
+  const detectedTL: Point = {
+    x: Math.min(width, Math.max(0, Math.round(leftBound * scale))),
+    y: Math.min(height, Math.max(0, Math.round(topBound * scale))),
+  };
+  const detectedTR: Point = {
+    x: Math.min(width, Math.max(0, Math.round(rightBound * scale))),
+    y: Math.min(height, Math.max(0, Math.round(topBound * scale))),
+  };
+  const detectedBR: Point = {
+    x: Math.min(width, Math.max(0, Math.round(rightBound * scale))),
+    y: Math.min(height, Math.max(0, Math.round(bottomBound * scale))),
+  };
+  const detectedBL: Point = {
+    x: Math.min(width, Math.max(0, Math.round(leftBound * scale))),
+    y: Math.min(height, Math.max(0, Math.round(bottomBound * scale))),
+  };
+
+  const detectedW = detectedTR.x - detectedTL.x;
+  const detectedH = detectedBL.y - detectedTL.y;
+
+  // Validation: If detected boundary covers less than 30% of width/height or looks erroneous,
+  // safely default to full image frame so the user's card is NEVER accidentally cropped out!
+  if (detectedW < width * 0.35 || detectedH < height * 0.25) {
+    return defaultFullCrop;
+  }
+
+  return [detectedTL, detectedTR, detectedBR, detectedBL];
+}
+
+/**
+ * Intelligent e-Aadhaar Dual Side Extractor.
+ * When a single e-Aadhaar slip or 2-sided photo is uploaded, automatically extracts
+ * and crops the Front and Back sides simultaneously into CR80 card dimensions.
+ */
+export function extractDualAadhaarSides(
+  sourceCanvas: HTMLCanvasElement,
+  cardWidthPx: number,
+  cardHeightPx: number
+): { frontCanvas: HTMLCanvasElement; backCanvas: HTMLCanvasElement } | null {
+  const width = sourceCanvas.width;
+  const height = sourceCanvas.height;
+  const isTall = height > width;
+
+  if (isTall) {
+    // In standard e-Aadhaar A4 slips, the bottom 38% has Front on left and Back on right
+    const cardRegionTop = Math.round(height * 0.63);
+    const cardRegionHeight = Math.round(height * 0.34);
+    const cardRegionBottom = cardRegionTop + cardRegionHeight;
+    const midX = Math.round(width * 0.5);
+
+    // Front (Bottom Left)
+    const frontCorners: [Point, Point, Point, Point] = [
+      { x: Math.round(width * 0.04), y: cardRegionTop },
+      { x: Math.round(midX - width * 0.01), y: cardRegionTop },
+      { x: Math.round(midX - width * 0.01), y: cardRegionBottom },
+      { x: Math.round(width * 0.04), y: cardRegionBottom },
+    ];
+
+    // Back (Bottom Right)
+    const backCorners: [Point, Point, Point, Point] = [
+      { x: Math.round(midX + width * 0.01), y: cardRegionTop },
+      { x: Math.round(width * 0.96), y: cardRegionTop },
+      { x: Math.round(width * 0.96), y: cardRegionBottom },
+      { x: Math.round(midX + width * 0.01), y: cardRegionBottom },
+    ];
+
+    const frontCanvas = warpPerspective(sourceCanvas, frontCorners, cardWidthPx, cardHeightPx);
+    const backCanvas = warpPerspective(sourceCanvas, backCorners, cardWidthPx, cardHeightPx);
+
+    return { frontCanvas, backCanvas };
+  } else {
+    // Horizontal side-by-side scan
+    const midX = Math.round(width * 0.5);
+
+    const frontCorners: [Point, Point, Point, Point] = [
+      { x: Math.round(width * 0.02), y: Math.round(height * 0.04) },
+      { x: Math.round(midX - width * 0.01), y: Math.round(height * 0.04) },
+      { x: Math.round(midX - width * 0.01), y: Math.round(height * 0.96) },
+      { x: Math.round(width * 0.02), y: Math.round(height * 0.96) },
+    ];
+
+    const backCorners: [Point, Point, Point, Point] = [
+      { x: Math.round(midX + width * 0.01), y: Math.round(height * 0.04) },
+      { x: Math.round(width * 0.98), y: Math.round(height * 0.04) },
+      { x: Math.round(width * 0.98), y: Math.round(height * 0.96) },
+      { x: Math.round(midX + width * 0.01), y: Math.round(height * 0.96) },
+    ];
+
+    const frontCanvas = warpPerspective(sourceCanvas, frontCorners, cardWidthPx, cardHeightPx);
+    const backCanvas = warpPerspective(sourceCanvas, backCorners, cardWidthPx, cardHeightPx);
+
+    return { frontCanvas, backCanvas };
+  }
+}
+
+/**
+ * Rotate a canvas by specified degrees (90, 180, 270)
+ */
+export function rotateCanvas(
+  sourceCanvas: HTMLCanvasElement,
+  degrees: number
+): HTMLCanvasElement {
+  const normDeg = ((degrees % 360) + 360) % 360;
+  if (normDeg === 0) return sourceCanvas;
+
+  const dest = document.createElement('canvas');
+  const isSideways = normDeg === 90 || normDeg === 270;
+  dest.width = isSideways ? sourceCanvas.height : sourceCanvas.width;
+  dest.height = isSideways ? sourceCanvas.width : sourceCanvas.height;
+
+  const ctx = dest.getContext('2d');
+  if (!ctx) return sourceCanvas;
+
+  ctx.translate(dest.width / 2, dest.height / 2);
+  ctx.rotate((normDeg * Math.PI) / 180);
+  ctx.drawImage(sourceCanvas, -sourceCanvas.width / 2, -sourceCanvas.height / 2);
+
+  return dest;
+}
+
+/**
+ * Apply Document Enhancement Filters (Magic Clarity, Contrast, Black & White)
+ * Adobe Scan-style "Magic Color" removes shadows and enhances ink/text.
  */
 export function applyScanFilter(
   canvas: HTMLCanvasElement,
@@ -203,7 +465,8 @@ export function applyScanFilter(
     const lum = 0.299 * r + 0.587 * g + 0.114 * b;
 
     if (filterType === 'magic') {
-      const whitened = lum > 140 ? Math.min(255, lum * 1.25) : lum * 0.85;
+      // Gentle shadow removal and document background whitening while preserving text & photo contrast
+      const whitened = lum > 135 ? Math.min(255, lum * 1.15 + 12) : lum * 0.94;
       const factor = whitened / (lum || 1);
       data[i] = Math.min(255, Math.round(r * factor));
       data[i + 1] = Math.min(255, Math.round(g * factor));
@@ -218,7 +481,7 @@ export function applyScanFilter(
       data[i + 1] = lum;
       data[i + 2] = lum;
     } else if (filterType === 'contrast') {
-      const val = Math.max(0, Math.min(255, (lum - 128) * 1.6 + 128));
+      const val = Math.max(0, Math.min(255, (lum - 128) * 1.5 + 128));
       data[i] = val;
       data[i + 1] = val;
       data[i + 2] = val;

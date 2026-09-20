@@ -13,6 +13,8 @@ import {
   Sparkles,
   Sliders,
   RefreshCw,
+  ChevronDown,
+  Maximize2,
 } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
@@ -35,7 +37,9 @@ export const PassportPhotoMaker: React.FC = () => {
   const [selectedPreset, setSelectedPreset] = useState<string>('in-passport');
   const [customWidthMm, setCustomWidthMm] = useState<number>(35);
   const [customHeightMm, setCustomHeightMm] = useState<number>(45);
-  
+  const [isPresetDropdownOpen, setIsPresetDropdownOpen] = useState<boolean>(false);
+  const presetDropdownRef = useRef<HTMLDivElement>(null);
+
   // Background & AI Segment Settings
   const [aiBgRemoval, setAiBgRemoval] = useState<boolean>(true);
   const [backgroundColor, setBackgroundColor] = useState<string>('white');
@@ -57,6 +61,17 @@ export const PassportPhotoMaker: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sourceCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (presetDropdownRef.current && !presetDropdownRef.current.contains(event.target as Node)) {
+        setIsPresetDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Find active preset
   const activePreset =
@@ -166,50 +181,18 @@ export const PassportPhotoMaker: React.FC = () => {
 
     ctx.drawImage(subjectToDraw, -drawW / 2, -drawH / 2, drawW, drawH);
     ctx.restore();
-
-    // 4. Draw ICAO Facial Guide Oval Overlay if enabled
-    if (showOvalGuide) {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.75)';
-      ctx.lineWidth = Math.max(2, Math.round(widthPx * 0.005));
-      ctx.setLineDash([8, 6]);
-
-      const ovalCenterX = widthPx / 2;
-      const ovalCenterY = heightPx * 0.42;
-      const radiusX = widthPx * 0.28;
-      const radiusY = heightPx * 0.35;
-
-      ctx.beginPath();
-      ctx.ellipse(ovalCenterX, ovalCenterY, radiusX, radiusY, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = 'rgba(251, 191, 36, 0.7)';
-      ctx.beginPath();
-      ctx.moveTo(ovalCenterX - radiusX * 1.1, heightPx * 0.45);
-      ctx.lineTo(ovalCenterX + radiusX * 1.1, heightPx * 0.45);
-      ctx.stroke();
-
-      ctx.strokeStyle = 'rgba(52, 211, 153, 0.8)';
-      ctx.beginPath();
-      ctx.moveTo(ovalCenterX - radiusX * 0.6, heightPx * 0.78);
-      ctx.lineTo(ovalCenterX + radiusX * 0.6, heightPx * 0.78);
-      ctx.stroke();
-
-      ctx.restore();
-    }
   }, [
     originalImage,
     segmentedCanvas,
     aiBgRemoval,
-    currentWidthMm,
-    currentHeightMm,
     backgroundColor,
     customHex,
-    zoom,
-    rotation,
+    currentWidthMm,
+    currentHeightMm,
     panX,
     panY,
-    showOvalGuide,
+    rotation,
+    zoom,
   ]);
 
   useEffect(() => {
@@ -306,6 +289,18 @@ export const PassportPhotoMaker: React.FC = () => {
                 }}
               >
                 <canvas ref={canvasRef} className="max-h-[440px] w-auto object-contain" />
+
+                {/* Biometric Guide SVG Overlay (UI Only - Not baked into photo) */}
+                {showOvalGuide && (
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    {/* Head Oval */}
+                    <ellipse cx="50" cy="43" rx="28" ry="34" fill="none" stroke="rgba(56, 189, 248, 0.85)" strokeWidth="1.5" strokeDasharray="4 3" />
+                    {/* Eye Level Line */}
+                    <line x1="20" y1="46" x2="80" y2="46" stroke="rgba(251, 191, 36, 0.8)" strokeWidth="1.2" strokeDasharray="3 3" />
+                    {/* Chin Line */}
+                    <line x1="34" y1="77" x2="66" y2="77" stroke="rgba(52, 211, 153, 0.9)" strokeWidth="1.5" />
+                  </svg>
+                )}
               </div>
 
               <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
@@ -347,11 +342,10 @@ export const PassportPhotoMaker: React.FC = () => {
 
                 <button
                   onClick={() => setShowOvalGuide(!showOvalGuide)}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-colors cursor-pointer ${
-                    showOvalGuide
-                      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                      : 'bg-slate-800 text-slate-400 border-slate-700'
-                  }`}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-colors cursor-pointer ${showOvalGuide
+                    ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                    }`}
                 >
                   {showOvalGuide ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                   <span>Biometric Guide</span>
@@ -407,11 +401,10 @@ export const PassportPhotoMaker: React.FC = () => {
 
                 <button
                   onClick={() => setAiBgRemoval(!aiBgRemoval)}
-                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    aiBgRemoval
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
-                      : 'bg-slate-800 text-slate-400 border border-slate-700'
-                  }`}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${aiBgRemoval
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
+                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    }`}
                 >
                   {aiBgRemoval ? '✓ Auto-Remove ON' : 'Original Photo'}
                 </button>
@@ -429,11 +422,10 @@ export const PassportPhotoMaker: React.FC = () => {
                         <button
                           key={color.id}
                           onClick={() => setBackgroundColor(color.id)}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                            backgroundColor === color.id
-                              ? 'bg-cyan-600/20 border-cyan-400 text-white shadow-xs'
-                              : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-800'
-                          }`}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all cursor-pointer ${backgroundColor === color.id
+                            ? 'bg-cyan-600/20 border-cyan-400 text-white shadow-xs'
+                            : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-800'
+                            }`}
                         >
                           <span
                             className="w-3.5 h-3.5 rounded-full border border-slate-600 shadow-inner shrink-0"
@@ -519,45 +511,98 @@ export const PassportPhotoMaker: React.FC = () => {
               )}
             </div>
 
-            {/* Size Preset Selector */}
-            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Photo Size Dimensions
-              </h3>
-
-              <div className="space-y-2">
-                {PASSPORT_SIZE_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => setSelectedPreset(preset.id)}
-                    className={`w-full p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      selectedPreset === preset.id
-                        ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-md'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800/60'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-xs sm:text-sm">{preset.name}</span>
-                      {selectedPreset === preset.id && (
-                        <Check className="w-4 h-4 text-indigo-400 shrink-0" />
-                      )}
-                    </div>
-                    <span className="text-[11px] text-slate-400 block mt-0.5">
-                      {preset.description}
-                    </span>
-                  </button>
-                ))}
+            {/* Size Preset Selector Dropdown */}
+            <div
+              className={`p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-3 transition-all backdrop-blur-xl ${isPresetDropdownOpen
+                ? 'relative z-40 ring-1 ring-indigo-500/50 shadow-2xl shadow-indigo-950/40'
+                : 'relative z-10'
+                }`}
+              ref={presetDropdownRef}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Maximize2 className="w-3.5 h-3.5 text-indigo-400" />
+                  Photo Size Dimensions
+                </h3>
+                <span className="text-[11px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">
+                  {selectedPreset === 'custom' ? `${customWidthMm}×${customHeightMm} mm` : `${activePreset.widthMm}×${activePreset.heightMm} mm`}
+                </span>
               </div>
 
+              {/* Dropdown Button */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsPresetDropdownOpen((prev) => !prev)}
+                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-700/80 hover:border-indigo-500/60 text-left transition-all cursor-pointer flex items-center justify-between shadow-inner group"
+                >
+                  <div className="space-y-0.5 pr-2 min-w-0">
+                    <span className="font-semibold text-xs sm:text-sm text-white block truncate group-hover:text-indigo-300 transition-colors">
+                      {activePreset.name}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block truncate">
+                      {activePreset.description}
+                    </span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-transform duration-200 shrink-0 ${isPresetDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown Options List */}
+                {isPresetDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1.5 p-1.5 rounded-2xl bg-slate-900 border border-indigo-500/40 shadow-2xl shadow-black/90 z-50 space-y-1 max-h-64 overflow-y-auto backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+                    {PASSPORT_SIZE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPreset(preset.id);
+                          setIsPresetDropdownOpen(false);
+                        }}
+                        className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start justify-between gap-2 ${selectedPreset === preset.id
+                          ? 'bg-indigo-600/20 border-indigo-500/60 text-white shadow-sm'
+                          : 'bg-slate-950/60 border-transparent text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                          }`}
+                      >
+                        <div className="space-y-0.5 min-w-0">
+                          <span className="font-semibold text-xs text-white block">{preset.name}</span>
+                          <span className="text-[10.5px] text-slate-400 block leading-tight">
+                            {preset.description}
+                          </span>
+                        </div>
+                        {selectedPreset === preset.id && (
+                          <Check className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Active Preset Spec Summary */}
+              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+                <span>
+                  Target DPI: <strong className="text-slate-200 font-mono">300 DPI</strong>
+                </span>
+                <span>
+                  Resolution:{' '}
+                  <strong className="text-cyan-400 font-mono">
+                    {selectedPreset === 'custom'
+                      ? `${mmToPixels(customWidthMm, 300)} × ${mmToPixels(customHeightMm, 300)} px`
+                      : `${activePreset.widthPx} × ${activePreset.heightPx} px`}
+                  </strong>
+                </span>
+              </div>
+
+              {/* Custom Dimension Inputs */}
               {selectedPreset === 'custom' && (
-                <div className="pt-2 grid grid-cols-2 gap-3 border-t border-slate-800">
+                <div className="pt-2 grid grid-cols-2 gap-3 border-t border-slate-800 animate-in fade-in duration-200">
                   <div>
                     <label className="text-xs text-slate-400 block mb-1">Width (mm)</label>
                     <input
                       type="number"
                       value={customWidthMm}
                       onChange={(e) => setCustomWidthMm(Math.max(10, parseInt(e.target.value) || 35))}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -566,7 +611,7 @@ export const PassportPhotoMaker: React.FC = () => {
                       type="number"
                       value={customHeightMm}
                       onChange={(e) => setCustomHeightMm(Math.max(10, parseInt(e.target.value) || 45))}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
                     />
                   </div>
                 </div>

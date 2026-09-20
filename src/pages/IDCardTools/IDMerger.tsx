@@ -4,72 +4,219 @@ import {
   FileText,
   Columns,
   Rows,
+  Sparkles,
+  Crop,
+  Trash2,
+  Printer,
+  ShieldCheck,
 } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
 import { DownloadDropdown } from '../../components/common/DownloadDropdown';
 import { DOCUMENT_PRESETS, type DocumentType } from '../../types/idMerger';
 import { loadImage, mmToPixels } from '../../utils/canvasUtils';
+import {
+  type Point,
+  type ScanFilterType,
+  warpPerspective,
+  applyScanFilter,
+  rotateCanvas,
+} from '../../utils/perspectiveTransform';
+import { CornerAdjustModal } from '../../components/id/CornerAdjustModal';
 import { PDFDocument } from 'pdf-lib';
-import { downloadBlob } from '../../utils/fileHelpers';
+import { downloadBlob, printCanvas } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
 
-export const IDMerger: React.FC = () => {
-  const [selectedDocType, setSelectedDocType] = useState<DocumentType>('aadhaar');
+interface CardSlotData {
+  file: File | null;
+  sourceCanvas: HTMLCanvasElement | null;
+  corners: [Point, Point, Point, Point] | null;
+  warpedCanvas: HTMLCanvasElement | null;
+  rotation: number;
+  filter: ScanFilterType;
+}
 
-  // Files
-  const [frontFile, setFrontFile] = useState<File | null>(null);
-  const [frontImg, setFrontImg] = useState<HTMLImageElement | null>(null);
-  const [frontRot, setFrontRot] = useState<number>(0);
+const initialCardSlot: CardSlotData = {
+  file: null,
+  sourceCanvas: null,
+  corners: null,
+  warpedCanvas: null,
+  rotation: 0,
+  filter: 'original',
+};
 
-  const [backFile, setBackFile] = useState<File | null>(null);
-  const [backImg, setBackImg] = useState<HTMLImageElement | null>(null);
-  const [backRot, setBackRot] = useState<number>(0);
+interface IDMergerProps {
+  defaultDocType?: DocumentType;
+}
+
+export const IDMerger: React.FC<IDMergerProps> = ({ defaultDocType = 'aadhaar' }) => {
+  const [selectedDocType, setSelectedDocType] = useState<DocumentType>(defaultDocType);
+
+  // Front & Back Card Slots
+  const [frontCard, setFrontCard] = useState<CardSlotData>(initialCardSlot);
+  const [backCard, setBackCard] = useState<CardSlotData>(initialCardSlot);
+  const [notification, setNotification] = useState<string | null>(null);
+
+  // Active Corner Adjust Modal State
+  const [activeModalSide, setActiveModalSide] = useState<'front' | 'back' | null>(null);
 
   // Settings
   const [layout, setLayout] = useState<'horizontal' | 'vertical'>('vertical');
   const [outputFormat, setOutputFormat] = useState<'a4-sheet' | 'fit-card'>('a4-sheet');
   const [borderStyle, setBorderStyle] = useState<'none' | 'thin-solid' | 'dashed' | 'rounded-shadow'>('thin-solid');
-  const [showLabels] = useState<boolean>(true);
+  const [showLabels, setShowLabels] = useState<boolean>(false);
   const [showWatermark, setShowWatermark] = useState<boolean>(false);
-  const [watermarkText, setWatermarkText] = useState<string>('FOR VERIFICATION ONLY');
+  const [watermarkText, setWatermarkText] = useState<string>('FOR OFFICIAL USE ONLY');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const currentPreset =
     DOCUMENT_PRESETS.find((p) => p.id === selectedDocType) || DOCUMENT_PRESETS[0];
 
+  const dpi = 300;
+  const cardWidthPx = mmToPixels(currentPreset.recommendedWidthMm, dpi);
+  const cardHeightPx = mmToPixels(currentPreset.recommendedHeightMm, dpi);
+
   useEffect(() => {
     setLayout(currentPreset.defaultLayout);
   }, [currentPreset]);
 
+  // Flash Notification
+  const triggerNotice = (msg: string) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  // Process uploaded ID photo - Clean manual workflow with full frame default
+  const processUploadedCard = useCallback(
+    (img: HTMLImageElement, file: File): CardSlotData => {
+      const sCanvas = document.createElement('canvas');
+      sCanvas.width = img.width;
+      sCanvas.height = img.height;
+      const sCtx = sCanvas.getContext('2d');
+      sCtx?.drawImage(img, 0, 0);
+
+      const fullCorners: [Point, Point, Point, Point] = [
+        { x: 0, y: 0 },
+        { x: img.width, y: 0 },
+        { x: img.width, y: img.height },
+        { x: 0, y: img.height },
+      ];
+
+      const warped = warpPerspective(sCanvas, fullCorners, cardWidthPx, cardHeightPx);
+      const filtered = applyScanFilter(warped, 'original');
+
+      return {
+        file,
+        sourceCanvas: sCanvas,
+        corners: fullCorners,
+        warpedCanvas: filtered,
+        rotation: 0,
+        filter: 'original',
+      };
+    },
+    [cardWidthPx, cardHeightPx]
+  );
+
   const handleFrontUpload = async (file: File | File[]) => {
     const target = Array.isArray(file) ? file[0] : file;
-    setFrontFile(target);
     const img = await loadImage(target);
-    setFrontImg(img);
-    setFrontRot(0);
+    const processed = processUploadedCard(img, target);
+    setFrontCard(processed);
   };
 
   const handleBackUpload = async (file: File | File[]) => {
     const target = Array.isArray(file) ? file[0] : file;
-    setBackFile(target);
     const img = await loadImage(target);
-    setBackImg(img);
-    setBackRot(0);
+    const processed = processUploadedCard(img, target);
+    setBackCard(processed);
   };
 
+  // Re-warp card when corners, rotation, or filter changes
+  const recomputeCardSlot = useCallback(
+    (slot: CardSlotData, newRotation?: number, newFilter?: ScanFilterType): CardSlotData => {
+      if (!slot.sourceCanvas) return slot;
+
+      const rot = newRotation !== undefined ? newRotation : slot.rotation;
+      const flt = newFilter !== undefined ? newFilter : slot.filter;
+
+      // Apply rotation to source canvas if needed
+      const baseCanvas = rot !== 0 ? rotateCanvas(slot.sourceCanvas, rot) : slot.sourceCanvas;
+      const corners = slot.corners || [
+        { x: 0, y: 0 },
+        { x: baseCanvas.width, y: 0 },
+        { x: baseCanvas.width, y: baseCanvas.height },
+        { x: 0, y: baseCanvas.height },
+      ];
+
+      const warped = warpPerspective(baseCanvas, corners, cardWidthPx, cardHeightPx);
+      const filtered = applyScanFilter(warped, flt);
+
+      return {
+        ...slot,
+        rotation: rot,
+        filter: flt,
+        warpedCanvas: filtered,
+      };
+    },
+    [cardWidthPx, cardHeightPx]
+  );
+
+  // Quick Rotate Slot
+  const handleRotateSlot = (side: 'front' | 'back') => {
+    if (side === 'front') {
+      const nextRot = (frontCard.rotation + 90) % 360;
+      setFrontCard((prev) => recomputeCardSlot(prev, nextRot));
+    } else {
+      const nextRot = (backCard.rotation + 90) % 360;
+      setBackCard((prev) => recomputeCardSlot(prev, nextRot));
+    }
+  };
+
+  // Quick Filter Toggle (Original vs Magic)
+  const handleToggleMagicFilter = (side: 'front' | 'back') => {
+    if (side === 'front') {
+      const nextFilter = frontCard.filter === 'magic' ? 'original' : 'magic';
+      setFrontCard((prev) => recomputeCardSlot(prev, undefined, nextFilter));
+    } else {
+      const nextFilter = backCard.filter === 'magic' ? 'original' : 'magic';
+      setBackCard((prev) => recomputeCardSlot(prev, undefined, nextFilter));
+    }
+  };
+
+  // Apply changes from CornerAdjustModal
+  const handleModalApply = (
+    warped: HTMLCanvasElement,
+    corners: [Point, Point, Point, Point],
+    filter: ScanFilterType,
+    updatedSourceCanvas?: HTMLCanvasElement
+  ) => {
+    if (activeModalSide === 'front') {
+      setFrontCard((prev) => ({
+        ...prev,
+        sourceCanvas: updatedSourceCanvas || prev.sourceCanvas,
+        corners,
+        warpedCanvas: warped,
+        filter,
+      }));
+    } else if (activeModalSide === 'back') {
+      setBackCard((prev) => ({
+        ...prev,
+        sourceCanvas: updatedSourceCanvas || prev.sourceCanvas,
+        corners,
+        warpedCanvas: warped,
+        filter,
+      }));
+    }
+    setActiveModalSide(null);
+  };
+
+  // Render the final merged A4 sheet / Compact canvas
   const renderMergedCanvas = useCallback(() => {
     if (!canvasRef.current) return;
-    if (!frontImg && !backImg) return;
+    if (!frontCard.warpedCanvas && !backCard.warpedCanvas) return;
 
     const canvas = canvasRef.current;
-    const dpi = 300;
-
-    const cardWidthMm = currentPreset.recommendedWidthMm;
-    const cardHeightMm = currentPreset.recommendedHeightMm;
-    const cardWidthPx = mmToPixels(cardWidthMm, dpi);
-    const cardHeightPx = mmToPixels(cardHeightMm, dpi);
     const gapPx = mmToPixels(8, dpi);
 
     let canvasWidthPx: number;
@@ -81,10 +228,10 @@ export const IDMerger: React.FC = () => {
     } else {
       if (layout === 'horizontal') {
         canvasWidthPx = cardWidthPx * 2 + gapPx * 3;
-        canvasHeightPx = cardHeightPx + gapPx * 2 + (showLabels ? 40 : 0);
+        canvasHeightPx = cardHeightPx + gapPx * 2 + (showLabels ? 50 : 0);
       } else {
         canvasWidthPx = cardWidthPx + gapPx * 2;
-        canvasHeightPx = cardHeightPx * 2 + gapPx * 3 + (showLabels ? 80 : 0);
+        canvasHeightPx = cardHeightPx * 2 + gapPx * 3 + (showLabels ? 90 : 0);
       }
     }
 
@@ -93,24 +240,15 @@ export const IDMerger: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Clean white paper background
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvasWidthPx, canvasHeightPx);
 
-    if (outputFormat === 'a4-sheet') {
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(currentPreset.title, canvasWidthPx / 2, 100);
-
-      ctx.fillStyle = '#64748b';
-      ctx.font = '20px "Plus Jakarta Sans", sans-serif';
-      ctx.fillText('Official Identity Document (2-Sided Copy)', canvasWidthPx / 2, 135);
-    }
-
+    // Card placement coordinates - centered on A4 print sheet
     let frontX = 0, frontY = 0, backX = 0, backY = 0;
 
     if (outputFormat === 'a4-sheet') {
-      const topMargin = 200;
+      const topMargin = layout === 'horizontal' ? 450 : 380;
       if (layout === 'horizontal') {
         const totalW = cardWidthPx * 2 + gapPx;
         frontX = (canvasWidthPx - totalW) / 2;
@@ -121,94 +259,104 @@ export const IDMerger: React.FC = () => {
         frontX = (canvasWidthPx - cardWidthPx) / 2;
         frontY = topMargin;
         backX = frontX;
-        backY = frontY + cardHeightPx + gapPx + 40;
+        backY = frontY + cardHeightPx + gapPx + (showLabels ? 50 : 20);
       }
     } else {
       if (layout === 'horizontal') {
         frontX = gapPx;
-        frontY = gapPx + (showLabels ? 25 : 0);
+        frontY = gapPx + (showLabels ? 30 : 0);
         backX = frontX + cardWidthPx + gapPx;
         backY = frontY;
       } else {
         frontX = gapPx;
-        frontY = gapPx + (showLabels ? 25 : 0);
+        frontY = gapPx + (showLabels ? 30 : 0);
         backX = frontX;
-        backY = frontY + cardHeightPx + gapPx + (showLabels ? 25 : 0);
+        backY = frontY + cardHeightPx + gapPx + (showLabels ? 50 : 10);
       }
     }
 
-    const drawCard = (
-      img: HTMLImageElement | null,
-      x: number,
-      y: number,
-      rot: number,
-      label: string
-    ) => {
+    // Draw single card helper
+    const drawCard = (cardCanvas: HTMLCanvasElement | null, x: number, y: number, label: string) => {
+      if (!cardCanvas) return;
+
       ctx.save();
 
+      // Card Label (only if enabled)
       if (showLabels) {
-        ctx.fillStyle = '#334155';
-        ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(label, x + cardWidthPx / 2, y - 10);
+        ctx.fillStyle = '#475569';
+        ctx.font = 'bold 20px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(label.toUpperCase(), x, y - 10);
       }
 
-      if (img) {
-        ctx.save();
-        ctx.beginPath();
-        if (borderStyle === 'rounded-shadow') {
-          ctx.roundRect(x, y, cardWidthPx, cardHeightPx, 16);
-        } else {
-          ctx.rect(x, y, cardWidthPx, cardHeightPx);
-        }
-        ctx.clip();
+      // Draw Card Image
+      ctx.drawImage(cardCanvas, x, y, cardWidthPx, cardHeightPx);
 
-        ctx.translate(x + cardWidthPx / 2, y + cardHeightPx / 2);
-        ctx.rotate((rot * Math.PI) / 180);
-        const isSideways = rot === 90 || rot === 270;
-        const dw = isSideways ? cardHeightPx : cardWidthPx;
-        const dh = isSideways ? cardWidthPx : cardHeightPx;
-        ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
-        ctx.restore();
-      } else {
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(x, y, cardWidthPx, cardHeightPx);
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '24px "Plus Jakarta Sans", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Upload ${label}`, x + cardWidthPx / 2, y + cardHeightPx / 2);
-      }
-
-      if (borderStyle !== 'none') {
+      // Draw Card Border
+      if (borderStyle === 'thin-solid') {
         ctx.strokeStyle = '#94a3b8';
         ctx.lineWidth = 2;
-        if (borderStyle === 'dashed') {
-          ctx.setLineDash([8, 6]);
-        } else {
-          ctx.setLineDash([]);
-        }
+        ctx.strokeRect(x, y, cardWidthPx, cardHeightPx);
+      } else if (borderStyle === 'dashed') {
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 8]);
+        ctx.strokeRect(x, y, cardWidthPx, cardHeightPx);
+        ctx.setLineDash([]);
+      }
 
-        if (borderStyle === 'rounded-shadow') {
-          ctx.beginPath();
-          ctx.roundRect(x, y, cardWidthPx, cardHeightPx, 16);
-          ctx.stroke();
-        } else {
-          ctx.strokeRect(x, y, cardWidthPx, cardHeightPx);
-        }
+      // Cutting Markers for A4 Sheets
+      if (outputFormat === 'a4-sheet') {
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        const markLen = 15;
+
+        // Top-left
+        ctx.beginPath();
+        ctx.moveTo(x - markLen, y);
+        ctx.lineTo(x, y);
+        ctx.moveTo(x, y - markLen);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        // Top-right
+        ctx.beginPath();
+        ctx.moveTo(x + cardWidthPx, y);
+        ctx.lineTo(x + cardWidthPx + markLen, y);
+        ctx.moveTo(x + cardWidthPx, y - markLen);
+        ctx.lineTo(x + cardWidthPx, y);
+        ctx.stroke();
+
+        // Bottom-left
+        ctx.beginPath();
+        ctx.moveTo(x - markLen, y + cardHeightPx);
+        ctx.lineTo(x, y + cardHeightPx);
+        ctx.moveTo(x, y + cardHeightPx);
+        ctx.lineTo(x, y + cardHeightPx + markLen);
+        ctx.stroke();
+
+        // Bottom-right
+        ctx.beginPath();
+        ctx.moveTo(x + cardWidthPx, y + cardHeightPx);
+        ctx.lineTo(x + cardWidthPx + markLen, y + cardHeightPx);
+        ctx.moveTo(x + cardWidthPx, y + cardHeightPx);
+        ctx.lineTo(x + cardWidthPx, y + cardHeightPx + markLen);
+        ctx.stroke();
       }
 
       ctx.restore();
     };
 
-    drawCard(frontImg, frontX, frontY, frontRot, currentPreset.frontLabel);
-    drawCard(backImg, backX, backY, backRot, currentPreset.backLabel);
+    drawCard(frontCard.warpedCanvas, frontX, frontY, currentPreset.frontLabel);
+    drawCard(backCard.warpedCanvas, backX, backY, currentPreset.backLabel);
 
+    // Watermark
     if (showWatermark && watermarkText) {
       ctx.save();
       ctx.translate(canvasWidthPx / 2, canvasHeightPx / 2);
-      ctx.rotate((-30 * Math.PI) / 180);
-      ctx.font = 'bold 48px "Plus Jakarta Sans", sans-serif';
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
+      ctx.rotate((-28 * Math.PI) / 180);
+      ctx.font = 'bold 56px "Plus Jakarta Sans", sans-serif';
+      ctx.fillStyle = 'rgba(220, 38, 38, 0.22)';
       ctx.textAlign = 'center';
       ctx.fillText(watermarkText.toUpperCase(), 0, 0);
       ctx.restore();
@@ -216,10 +364,8 @@ export const IDMerger: React.FC = () => {
 
     incrementStat('idMerger');
   }, [
-    frontImg,
-    backImg,
-    frontRot,
-    backRot,
+    frontCard.warpedCanvas,
+    backCard.warpedCanvas,
     layout,
     outputFormat,
     borderStyle,
@@ -227,6 +373,8 @@ export const IDMerger: React.FC = () => {
     showWatermark,
     watermarkText,
     currentPreset,
+    cardWidthPx,
+    cardHeightPx,
   ]);
 
   useEffect(() => {
@@ -253,28 +401,38 @@ export const IDMerger: React.FC = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    if (!canvasRef.current) return;
+    printCanvas(canvasRef.current, `${selectedDocType}-a4-print`);
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
       <ToolHeader
         title="Two-Sided ID Card Merger"
-        description="Merge front and back sides of Aadhaar, Voter ID, PAN, Driving Licence, and Student ID into an A4 print-ready sheet or compact image."
+        description="Upload Aadhaar, Voter ID, PAN, or Driving Licence. Crop, rotate, and merge front & back sides into a clean 300 DPI A4 print sheet."
         categoryName="ID Card Tools"
         categoryPath="/id/merger"
-        badge="A4 Print Ready"
+        badge="300 DPI Print Ready"
       />
 
-      <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      {/* Toast Notification */}
+      {notification && (
+        <div className="p-3.5 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-bold flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-200 shadow-lg">
+          <span>{notification}</span>
+          <span className="text-[10px] text-cyan-400/80 font-mono">CR80 (85.6 × 54mm)</span>
+        </div>
+      )}
+
+      {/* Preset Selector */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {DOCUMENT_PRESETS.map((doc) => (
           <button
             key={doc.id}
             onClick={() => setSelectedDocType(doc.id)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shadow-xs ${
               selectedDocType === doc.id
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-2 ring-indigo-400/40'
+                : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/10 hover:bg-slate-800'
             }`}
           >
             {doc.title}
@@ -283,171 +441,380 @@ export const IDMerger: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-7 space-y-4">
-          <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl flex items-center justify-center min-h-[500px] overflow-hidden">
-            <div className="p-3 bg-white rounded-lg shadow-2xl max-w-full max-h-[520px] overflow-auto flex items-center justify-center">
+        {/* Left Column: Canvas Preview + Upload Slots */}
+        <div className="lg:col-span-7 space-y-5">
+          {/* Main A4 / Card Output Canvas */}
+          <div className="p-6 rounded-3xl bg-slate-900/80 border border-white/10 shadow-2xl flex items-center justify-center min-h-[480px] overflow-hidden backdrop-blur-xl">
+            <div className="p-3 bg-white rounded-xl shadow-2xl max-w-full max-h-[520px] overflow-auto flex items-center justify-center">
               <canvas
                 ref={canvasRef}
-                className="max-h-[480px] w-auto object-contain border border-slate-200"
+                className="max-h-[460px] w-auto object-contain border border-slate-200 rounded"
               />
             </div>
           </div>
 
+          {/* Front and Back Upload Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-                <span>{currentPreset.frontLabel}</span>
-                {frontImg && (
-                  <button
-                    onClick={() => setFrontRot((r) => (r + 90) % 360)}
-                    className="p-1 text-indigo-400 hover:text-indigo-300 flex items-center gap-1 text-[11px]"
-                  >
-                    <RotateCw className="w-3 h-3" />
-                    <span>Rotate</span>
-                  </button>
-                )}
+            {/* Front Card Slot */}
+            <div className="p-4 rounded-3xl bg-slate-900/90 border border-white/10 space-y-3 shadow-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                  {currentPreset.frontLabel}
+                </span>
               </div>
-              <UploadZone
-                onFileSelect={handleFrontUpload}
-                title={frontFile ? frontFile.name : `Upload Front Side`}
-                subtitle="JPG, PNG, WebP"
-                className="text-xs !p-4"
-              />
+
+              {!frontCard.warpedCanvas ? (
+                <UploadZone
+                  onFileSelect={handleFrontUpload}
+                  title="Upload Front Side"
+                  subtitle="Upload image or scan copy"
+                  className="text-xs !p-4"
+                />
+              ) : (
+                <div className="space-y-3">
+                  <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-slate-950 p-2 flex items-center justify-center group">
+                    <img
+                      src={frontCard.warpedCanvas.toDataURL()}
+                      alt="Front preview"
+                      className="max-h-[140px] w-auto object-contain rounded-xl border border-white/5"
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                    <button
+                      onClick={() => handleRotateSlot('front')}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 font-semibold transition-all cursor-pointer"
+                      title="Rotate 90 degrees"
+                    >
+                      <RotateCw className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Rotate 90°</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleToggleMagicFilter('front')}
+                      className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border font-semibold transition-all cursor-pointer ${
+                        frontCard.filter === 'magic'
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          : 'bg-slate-800 text-slate-300 border-white/10'
+                      }`}
+                      title="Toggle Document Clarity Filter"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Clarity</span>
+                    </button>
+                  </div>
+
+                  {/* Manual Corner Crop & Reset */}
+                  <div className="space-y-1.5 pt-1">
+                    <button
+                      onClick={() => setActiveModalSide('front')}
+                      className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 font-bold text-xs shadow-xs transition-all cursor-pointer hover:border-cyan-400"
+                    >
+                      <Crop className="w-4 h-4 text-cyan-400" />
+                      <span>📐 Crop &amp; Adjust Corners</span>
+                    </button>
+
+                    <div className="flex items-center justify-between px-1 text-[11px]">
+                      <button
+                        onClick={() => {
+                          if (frontCard.sourceCanvas) {
+                            const w = frontCard.sourceCanvas.width;
+                            const h = frontCard.sourceCanvas.height;
+                            const fullCorners: [Point, Point, Point, Point] = [
+                              { x: 0, y: 0 },
+                              { x: w, y: 0 },
+                              { x: w, y: h },
+                              { x: 0, y: h },
+                            ];
+                            const warped = warpPerspective(frontCard.sourceCanvas, fullCorners, cardWidthPx, cardHeightPx);
+                            const filtered = applyScanFilter(warped, frontCard.filter);
+                            setFrontCard((prev) => ({
+                              ...prev,
+                              corners: fullCorners,
+                              warpedCanvas: filtered,
+                            }));
+                            triggerNotice('Reset Front Card to Full Image');
+                          }
+                        }}
+                        className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                      >
+                        Reset Full Image
+                      </button>
+
+                      <button
+                        onClick={() => setFrontCard(initialCardSlot)}
+                        className="text-rose-400 hover:text-rose-300 transition-colors cursor-pointer inline-flex items-center gap-1 font-semibold"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-                <span>{currentPreset.backLabel}</span>
-                {backImg && (
-                  <button
-                    onClick={() => setBackRot((r) => (r + 90) % 360)}
-                    className="p-1 text-indigo-400 hover:text-indigo-300 flex items-center gap-1 text-[11px]"
-                  >
-                    <RotateCw className="w-3 h-3" />
-                    <span>Rotate</span>
-                  </button>
-                )}
+            {/* Back Card Slot */}
+            <div className="p-4 rounded-3xl bg-slate-900/90 border border-white/10 space-y-3 shadow-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                  {currentPreset.backLabel}
+                </span>
               </div>
-              <UploadZone
-                onFileSelect={handleBackUpload}
-                title={backFile ? backFile.name : `Upload Back Side`}
-                subtitle="JPG, PNG, WebP"
-                className="text-xs !p-4"
-              />
+
+              {!backCard.warpedCanvas ? (
+                <UploadZone
+                  onFileSelect={handleBackUpload}
+                  title="Upload Back Side"
+                  subtitle="Upload image or scan copy"
+                  className="text-xs !p-4"
+                />
+              ) : (
+                <div className="space-y-3">
+                  <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-slate-950 p-2 flex items-center justify-center group">
+                    <img
+                      src={backCard.warpedCanvas.toDataURL()}
+                      alt="Back preview"
+                      className="max-h-[140px] w-auto object-contain rounded-xl border border-white/5"
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                    <button
+                      onClick={() => handleRotateSlot('back')}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 font-semibold transition-all cursor-pointer"
+                      title="Rotate 90 degrees"
+                    >
+                      <RotateCw className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Rotate 90°</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleToggleMagicFilter('back')}
+                      className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border font-semibold transition-all cursor-pointer ${
+                        backCard.filter === 'magic'
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          : 'bg-slate-800 text-slate-300 border-white/10'
+                      }`}
+                      title="Toggle Document Clarity Filter"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Clarity</span>
+                    </button>
+                  </div>
+
+                  {/* Manual Corner Crop & Reset */}
+                  <div className="space-y-1.5 pt-1">
+                    <button
+                      onClick={() => setActiveModalSide('back')}
+                      className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 font-bold text-xs shadow-xs transition-all cursor-pointer hover:border-cyan-400"
+                    >
+                      <Crop className="w-4 h-4 text-cyan-400" />
+                      <span>📐 Crop &amp; Adjust Corners</span>
+                    </button>
+
+                    <div className="flex items-center justify-between px-1 text-[11px]">
+                      <button
+                        onClick={() => {
+                          if (backCard.sourceCanvas) {
+                            const w = backCard.sourceCanvas.width;
+                            const h = backCard.sourceCanvas.height;
+                            const fullCorners: [Point, Point, Point, Point] = [
+                              { x: 0, y: 0 },
+                              { x: w, y: 0 },
+                              { x: w, y: h },
+                              { x: 0, y: h },
+                            ];
+                            const warped = warpPerspective(backCard.sourceCanvas, fullCorners, cardWidthPx, cardHeightPx);
+                            const filtered = applyScanFilter(warped, backCard.filter);
+                            setBackCard((prev) => ({
+                              ...prev,
+                              corners: fullCorners,
+                              warpedCanvas: filtered,
+                            }));
+                            triggerNotice('Reset Back Card to Full Image');
+                          }
+                        }}
+                        className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                      >
+                        Reset Full Image
+                      </button>
+
+                      <button
+                        onClick={() => setBackCard(initialCardSlot)}
+                        className="text-rose-400 hover:text-rose-300 transition-colors cursor-pointer inline-flex items-center gap-1 font-semibold"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
+        {/* Right Column: Export + Layout Settings */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/30 space-y-3 shadow-xl">
+          {/* Export Actions Panel */}
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/30 space-y-4 shadow-2xl backdrop-blur-xl">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider">
               Export Merged ID
             </h3>
 
-            <div className="flex flex-col sm:flex-row gap-2.5">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleExportPDF}
-                className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-950/40 transition-all cursor-pointer"
+                disabled={!frontCard.warpedCanvas && !backCard.warpedCanvas}
+                className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-xl shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
                 <FileText className="w-4 h-4" />
-                <span>Export Vector PDF (A4)</span>
+                <span>Download A4 PDF</span>
               </button>
 
               <DownloadDropdown
                 getCanvas={() => canvasRef.current}
-                baseFilename={`${selectedDocType}-merged`}
-                onPrint={handlePrint}
-                onExportPDF={handleExportPDF}
+                baseFilename={`${selectedDocType}-merged-print`}
               />
+
+              <button
+                onClick={handlePrint}
+                disabled={!frontCard.warpedCanvas && !backCard.warpedCanvas}
+                className="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
+                title="Print Directly"
+              >
+                <Printer className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-              Layout &amp; Orientation
+          {/* Layout & Format Settings */}
+          <div className="p-6 rounded-3xl bg-slate-900/90 border border-white/10 space-y-5 shadow-xl backdrop-blur-xl">
+            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider font-heading">
+              Print &amp; Layout Settings
             </h3>
 
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setLayout('vertical')}
-                className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-semibold transition-all ${
-                  layout === 'vertical'
-                    ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-md'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                <Rows className="w-4 h-4 text-indigo-400" />
-                <span>Vertical (Stacked)</span>
-              </button>
-
-              <button
-                onClick={() => setLayout('horizontal')}
-                className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-semibold transition-all ${
-                  layout === 'horizontal'
-                    ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-md'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                <Columns className="w-4 h-4 text-indigo-400" />
-                <span>Horizontal (Side-by-Side)</span>
-              </button>
-            </div>
-
-            <div className="pt-2 border-t border-slate-800">
-              <label className="text-xs text-slate-400 block mb-1.5">Output Format</label>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+            {/* Layout Orientation */}
+            <div className="space-y-2">
+              <label className="text-xs text-slate-400 font-medium block">
+                Card Alignment:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => setOutputFormat('a4-sheet')}
-                  className={`p-2.5 rounded-lg border font-medium ${
-                    outputFormat === 'a4-sheet'
-                      ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  onClick={() => setLayout('vertical')}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                    layout === 'vertical'
+                      ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 shadow-xs'
+                      : 'bg-slate-950/80 text-slate-400 border-white/5 hover:bg-slate-800'
                   }`}
                 >
-                  A4 Print Ready Sheet
+                  <Rows className="w-4 h-4" />
+                  <span>Vertical (Stacked)</span>
                 </button>
+
                 <button
-                  onClick={() => setOutputFormat('fit-card')}
-                  className={`p-2.5 rounded-lg border font-medium ${
-                    outputFormat === 'fit-card'
-                      ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  onClick={() => setLayout('horizontal')}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                    layout === 'horizontal'
+                      ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 shadow-xs'
+                      : 'bg-slate-950/80 text-slate-400 border-white/5 hover:bg-slate-800'
                   }`}
                 >
-                  Compact Fit Card
+                  <Columns className="w-4 h-4" />
+                  <span>Side by Side</span>
                 </button>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-800">
-              <label className="text-xs text-slate-400 block mb-1.5">Card Borders</label>
-              <div className="grid grid-cols-3 gap-1.5 text-[11px]">
+            {/* Output Page Format */}
+            <div className="space-y-2">
+              <label className="text-xs text-slate-400 font-medium block">
+                Canvas Sheet Size:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setOutputFormat('a4-sheet')}
+                  className={`py-2.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                    outputFormat === 'a4-sheet'
+                      ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 shadow-xs'
+                      : 'bg-slate-950/80 text-slate-400 border-white/5 hover:bg-slate-800'
+                  }`}
+                >
+                  📄 A4 Print Sheet
+                </button>
+
+                <button
+                  onClick={() => setOutputFormat('fit-card')}
+                  className={`py-2.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                    outputFormat === 'fit-card'
+                      ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 shadow-xs'
+                      : 'bg-slate-950/80 text-slate-400 border-white/5 hover:bg-slate-800'
+                  }`}
+                >
+                  🪪 Fit Cards Only
+                </button>
+              </div>
+            </div>
+
+            {/* Border Style */}
+            <div className="space-y-2">
+              <label className="text-xs text-slate-400 font-medium block">
+                Card Cutting Border:
+              </label>
+              <div className="grid grid-cols-3 gap-2">
                 {(['thin-solid', 'dashed', 'none'] as const).map((b) => (
                   <button
                     key={b}
                     onClick={() => setBorderStyle(b)}
-                    className={`py-1.5 rounded-lg capitalize border ${
+                    className={`py-2 rounded-xl border text-[11px] font-bold capitalize transition-all cursor-pointer ${
                       borderStyle === b
-                        ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                        : 'bg-slate-950 border-slate-800 text-slate-400'
+                        ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 shadow-xs'
+                        : 'bg-slate-950/80 text-slate-400 border-white/5 hover:bg-slate-800'
                     }`}
                   >
-                    {b.replace('-', ' ')}
+                    {b === 'thin-solid' ? 'Solid Line' : b === 'dashed' ? 'Dashed' : 'No Border'}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-800 space-y-2">
-              <label className="flex items-center justify-between text-xs text-slate-300 cursor-pointer">
-                <span>Security Watermark Overlay</span>
-                <input
-                  type="checkbox"
-                  checked={showWatermark}
-                  onChange={(e) => setShowWatermark(e.target.checked)}
-                  className="rounded accent-indigo-500 w-4 h-4 cursor-pointer"
-                />
-              </label>
+            {/* Labels toggle */}
+            <div className="pt-2 border-t border-white/5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-300 font-medium">Side Labels (FRONT / BACK):</span>
+                <button
+                  onClick={() => setShowLabels(!showLabels)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    showLabels
+                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40'
+                      : 'bg-slate-800 text-slate-400 border border-white/5'
+                  }`}
+                >
+                  {showLabels ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+            </div>
+
+            {/* Watermark Toggle */}
+            <div className="pt-2 border-t border-white/5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-300 font-medium">Security Watermark:</span>
+                <button
+                  onClick={() => setShowWatermark(!showWatermark)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    showWatermark
+                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40'
+                      : 'bg-slate-800 text-slate-400 border border-white/5'
+                  }`}
+                >
+                  {showWatermark ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
 
               {showWatermark && (
                 <input
@@ -455,13 +822,26 @@ export const IDMerger: React.FC = () => {
                   value={watermarkText}
                   onChange={(e) => setWatermarkText(e.target.value)}
                   placeholder="Watermark text..."
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-white/10 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
                 />
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Manual Corner Adjust Modal */}
+      <CornerAdjustModal
+        isOpen={activeModalSide !== null}
+        onClose={() => setActiveModalSide(null)}
+        title={activeModalSide === 'front' ? 'Crop & Adjust Front Card' : 'Crop & Adjust Back Card'}
+        sourceCanvas={activeModalSide === 'front' ? frontCard.sourceCanvas : backCard.sourceCanvas}
+        initialCorners={activeModalSide === 'front' ? frontCard.corners || undefined : backCard.corners || undefined}
+        initialFilter={activeModalSide === 'front' ? frontCard.filter : backCard.filter}
+        cardWidthPx={cardWidthPx}
+        cardHeightPx={cardHeightPx}
+        onApply={handleModalApply}
+      />
     </div>
   );
 };

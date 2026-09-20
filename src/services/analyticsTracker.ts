@@ -37,7 +37,7 @@ export function getLocalStats(): LocalStats {
 }
 
 export function incrementStat(
-  type: 'passport' | 'idMerger' | 'pdf' | 'scanner' | 'batch',
+  type: 'passport' | 'idMerger' | 'pdf' | 'scanner' | 'batch' | 'cropper' | 'photo' | 'signature',
   count = 1
 ) {
   const current = getLocalStats();
