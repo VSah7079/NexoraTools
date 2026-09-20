@@ -58,7 +58,7 @@ export const SignatureTool: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Signature Resizer & Enhancer"
         description="Clean paper shadows, darken ink, and compress signature photos to 10-20KB for SSC, UPSC, bank exams and online portals."

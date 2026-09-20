@@ -48,7 +48,7 @@ export const SplitPDF: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Split & Extract PDF Pages"
         description="Extract specific pages or page ranges (e.g. 1-3, 5, 8) into a separate, clean PDF document."

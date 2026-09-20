@@ -6,7 +6,7 @@ import { NexoraLogo } from '../common/NexoraLogo';
 export const Footer: React.FC = () => {
   return (
     <footer className="mt-20 border-t border-white/10 bg-slate-950/95 backdrop-blur-xl text-slate-400 no-print relative z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand & Parent info */}
           <div className="lg:col-span-2 space-y-4">
@@ -104,6 +104,18 @@ export const Footer: React.FC = () => {
                 <Link to="/pdf/split" className="hover:text-indigo-400 transition-colors flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
                   Split &amp; Extract PDF Pages
+                </Link>
+              </li>
+              <li>
+                <Link to="/pdf/watermark" className="hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                  PDF Watermark &amp; Security
+                </Link>
+              </li>
+              <li>
+                <Link to="/tools/qr-generator" className="hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                  QR Code &amp; UPI Standee
                 </Link>
               </li>
               <li>

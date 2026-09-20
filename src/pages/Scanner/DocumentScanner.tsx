@@ -104,7 +104,7 @@ export const DocumentScanner: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Document & ID Card Scanner"
         description="Perspective correction, 4-corner de-skewing, and magic document enhancement filters for receipts, certificates, and ID cards."
@@ -118,7 +118,8 @@ export const DocumentScanner: React.FC = () => {
           <UploadZone
             onFileSelect={handleFileSelect}
             title="Upload or Capture Document Photo"
-            subtitle="JPG, PNG, or mobile camera shot of document/card."
+            subtitle="JPG, PNG, or direct camera shot of document/certificate/ID card."
+            cameraMode="document"
           />
         </div>
       ) : (

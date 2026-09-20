@@ -73,7 +73,7 @@ export const PDFToImage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="PDF to High-Res Image (JPG/PNG)"
         description="Extract every page from your PDF document into crisp 300 DPI high-resolution images in seconds."

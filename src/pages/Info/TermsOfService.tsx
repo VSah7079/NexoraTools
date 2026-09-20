@@ -4,7 +4,7 @@ import { Scale, ShieldAlert, Award } from 'lucide-react';
 
 export const TermsOfService: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 space-y-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-16 space-y-8">
       <ToolHeader
         title="Terms of Service"
         description="Terms and conditions for utilizing the Nexora Tools utility platform."

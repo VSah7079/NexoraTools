@@ -7,6 +7,7 @@
     <title>Nexora Tools • Free Photo, Document, ID Card, PDF & Print Utility Suite</title>
     <meta name="description" content="100% Free online photo, ID card, PDF and document utility platform by Nexora Lab Technologies. Background remover, passport photo maker, ID card merger, document scanner, and print sheets with zero watermark and complete privacy." />
     <meta name="theme-color" content="#030712" />
+    <link rel="manifest" href="/manifest.json" />
     
     <!-- Google Fonts: Outfit (Headings), Plus Jakarta Sans (Body), JetBrains Mono (Specs) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,5 +17,14 @@
   <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-indigo-500/30 selection:text-indigo-300 min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

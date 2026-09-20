@@ -30,7 +30,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Admin System & Health Dashboard"
         description="Monitor client-side processing metrics, privacy status, active tools, and local browser memory in real time."

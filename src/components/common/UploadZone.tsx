@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { UploadCloud, Camera, Image as ImageIcon, FileText, Clipboard } from 'lucide-react';
 import { formatFileSize } from '../../utils/fileHelpers';
+import { CameraCaptureModal } from './CameraCaptureModal';
 
 interface UploadZoneProps {
   onFileSelect: (file: File | File[]) => void;
@@ -10,6 +11,7 @@ interface UploadZoneProps {
   title?: string;
   subtitle?: string;
   allowCamera?: boolean;
+  cameraMode?: 'passport' | 'document';
   className?: string;
 }
 
@@ -21,12 +23,13 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
   title = 'Select or drag & drop files here',
   subtitle = 'Supports JPG, PNG, WebP & PDF files up to 25MB',
   allowCamera = true,
+  cameraMode = 'passport',
   className = '',
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const validateAndHandle = useCallback(
     (files: FileList | null) => {
@@ -121,17 +124,6 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           className="hidden"
         />
 
-        {allowCamera && (
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={(e) => validateAndHandle(e.target.files)}
-            className="hidden"
-          />
-        )}
-
         <div className="relative z-10 flex flex-col items-center justify-center space-y-4">
           <div className="relative">
             <div className="p-5 rounded-3xl bg-gradient-to-tr from-indigo-600/30 via-cyan-500/20 to-purple-600/30 text-indigo-400 border border-white/10 group-hover:scale-110 group-hover:border-indigo-400 transition-transform duration-300 shadow-xl shadow-indigo-950/40">
@@ -162,12 +154,12 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  cameraInputRef.current?.click();
+                  setIsCameraModalOpen(true);
                 }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10 transition-colors cursor-pointer"
               >
                 <Camera className="w-3.5 h-3.5 text-sky-400" />
-                Capture with Camera
+                Live Camera Shot
               </button>
             )}
 
@@ -184,6 +176,20 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           {error}
         </div>
       )}
+
+      {/* Live Studio Camera Modal */}
+      <CameraCaptureModal
+        isOpen={isCameraModalOpen}
+        onClose={() => setIsCameraModalOpen(false)}
+        mode={cameraMode}
+        onCapture={(capturedFile) => {
+          if (multiple) {
+            onFileSelect([capturedFile]);
+          } else {
+            onFileSelect(capturedFile);
+          }
+        }}
+      />
     </div>
   );
 };

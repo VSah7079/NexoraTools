@@ -129,7 +129,7 @@ export const BatchTools: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Batch Photo Processor"
         description="Process up to 20 images simultaneously: batch compress to target KB, replace background colors, or generate passport crops, and export all as a ZIP archive."

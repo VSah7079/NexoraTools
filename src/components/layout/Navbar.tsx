@@ -14,14 +14,18 @@ import {
   Scan,
   Layers,
   Zap,
+  QrCode,
+  ShieldAlert,
 } from 'lucide-react';
 import { NexoraLogo } from '../common/NexoraLogo';
 import { SearchModal } from './SearchModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const Navbar: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const { t } = useLanguage();
   const location = useLocation();
 
   // Close mobile menu on route change
@@ -45,7 +49,7 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-slate-950/90 backdrop-blur-2xl transition-all shadow-md shadow-black/20">
-        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
             {/* Left: Brand Logo & Navigation */}
             <div className="flex items-center gap-3 lg:gap-6 min-w-0">
@@ -71,7 +75,7 @@ export const Navbar: React.FC = () => {
                     <div className="p-1 rounded-md bg-blue-500/20 text-blue-400">
                       <UserCheck className="w-3.5 h-3.5" />
                     </div>
-                    <span>Photo Tools</span>
+                    <span>{t('navPhotos')}</span>
                     <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${activeDropdown === 'photo' ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -89,10 +93,10 @@ export const Navbar: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-semibold flex items-center gap-1.5">
-                            Passport Photo Maker
+                            {t('passportMaker')}
                             <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300">Popular</span>
                           </div>
-                          <div className="text-[10px] text-slate-400">35×45mm, 2×2" presets &amp; print guides</div>
+                          <div className="text-[10px] text-slate-400">35×45mm, 2×2" &amp; Govt exam presets</div>
                         </div>
                       </Link>
                       <Link
@@ -104,7 +108,7 @@ export const Navbar: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-semibold flex items-center gap-1.5">
-                            AI Background Remover
+                            {t('bgRemover')}
                             <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300">AI</span>
                           </div>
                           <div className="text-[10px] text-slate-400">Transparent, white &amp; studio colors</div>
@@ -118,7 +122,7 @@ export const Navbar: React.FC = () => {
                           <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">KB</span>
                         </div>
                         <div>
-                          <div className="font-semibold">Exact KB Compressor</div>
+                          <div className="font-semibold">{t('exactCompress')}</div>
                           <div className="text-[10px] text-slate-400">Target 20KB, 50KB, 100KB for forms</div>
                         </div>
                       </Link>
@@ -166,7 +170,7 @@ export const Navbar: React.FC = () => {
                     <div className="p-1 rounded-md bg-purple-500/20 text-purple-400">
                       <CreditCard className="w-3.5 h-3.5" />
                     </div>
-                    <span>ID Cards</span>
+                    <span>{t('navIdCards')}</span>
                     <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${activeDropdown === 'id' ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -184,10 +188,10 @@ export const Navbar: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-semibold flex items-center gap-1.5">
-                            Front + Back ID Merger
+                            {t('idMerger')}
                             <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300">Popular</span>
                           </div>
-                          <div className="text-[10px] text-slate-400">Aadhaar, Voter, PAN, Driving Licence</div>
+                          <div className="text-[10px] text-slate-400">Aadhaar, Voter, PAN, DL &amp; Ayushman</div>
                         </div>
                       </Link>
                       <Link
@@ -198,7 +202,7 @@ export const Navbar: React.FC = () => {
                           <ShieldCheck className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="font-semibold">Aadhaar Card A4 Sheet</div>
+                          <div className="font-semibold">{t('aadhaarMerger')}</div>
                           <div className="text-[10px] text-slate-400">CR80 standard card &amp; A4 print layout</div>
                         </div>
                       </Link>
@@ -222,7 +226,7 @@ export const Navbar: React.FC = () => {
                     <div className="p-1 rounded-md bg-rose-500/20 text-rose-400">
                       <FileText className="w-3.5 h-3.5" />
                     </div>
-                    <span>PDF Suite</span>
+                    <span>{t('navPdf')}</span>
                     <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${activeDropdown === 'pdf' ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -239,7 +243,7 @@ export const Navbar: React.FC = () => {
                           <FileText className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="font-semibold">Image to PDF</div>
+                          <div className="font-semibold">{t('imageToPdf')}</div>
                           <div className="text-[10px] text-slate-400">Multi-image &amp; drag-to-reorder</div>
                         </div>
                       </Link>
@@ -251,7 +255,7 @@ export const Navbar: React.FC = () => {
                           <span className="w-4 h-4 font-bold text-xs flex items-center justify-center">JPG</span>
                         </div>
                         <div>
-                          <div className="font-semibold">PDF to Image</div>
+                          <div className="font-semibold">{t('pdfToImage')}</div>
                           <div className="text-[10px] text-slate-400">Extract high-resolution pages</div>
                         </div>
                       </Link>
@@ -291,6 +295,18 @@ export const Navbar: React.FC = () => {
                           <div className="text-[10px] text-slate-400">Reduce document file size</div>
                         </div>
                       </Link>
+                      <Link
+                        to="/pdf/watermark"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                      >
+                        <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400 group-hover:scale-105 transition-transform">
+                          <ShieldAlert className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">{t('pdfWatermark')}</div>
+                          <div className="text-[10px] text-slate-400">Security seals &amp; mesh protection</div>
+                        </div>
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -307,7 +323,21 @@ export const Navbar: React.FC = () => {
                   <div className="p-1 rounded-md bg-emerald-500/20 text-emerald-400">
                     <Printer className="w-3.5 h-3.5" />
                   </div>
-                  <span>Passport Sheet</span>
+                  <span>{t('navPrint')}</span>
+                </Link>
+
+                <Link
+                  to="/tools/qr-generator"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
+                    location.pathname.startsWith('/tools/qr-generator')
+                      ? 'bg-white/10 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <div className="p-1 rounded-md bg-indigo-500/20 text-indigo-400">
+                    <QrCode className="w-3.5 h-3.5" />
+                  </div>
+                  <span>{t('navQr')}</span>
                 </Link>
 
                 <Link
@@ -321,7 +351,7 @@ export const Navbar: React.FC = () => {
                   <div className="p-1 rounded-md bg-cyan-500/20 text-cyan-400">
                     <Scan className="w-3.5 h-3.5" />
                   </div>
-                  <span>Doc Scanner</span>
+                  <span>{t('navScanner')}</span>
                 </Link>
 
                 <Link
@@ -335,7 +365,7 @@ export const Navbar: React.FC = () => {
                   <div className="p-1 rounded-md bg-pink-500/20 text-pink-400">
                     <Zap className="w-3.5 h-3.5" />
                   </div>
-                  <span>Batch Tools</span>
+                  <span>{t('navBatch')}</span>
                 </Link>
               </nav>
 

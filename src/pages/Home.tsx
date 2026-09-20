@@ -75,7 +75,7 @@ export const Home: React.FC = () => {
     <div className="space-y-20 sm:space-y-24">
       {/* Hero Section */}
       <section className="relative pt-6 sm:pt-14 pb-4 overflow-hidden text-center">
-        <div className="max-w-4xl mx-auto px-4 space-y-6 sm:space-y-8">
+        <div className="max-w-5xl mx-auto px-4 space-y-6 sm:space-y-8">
           {/* Live Status Pill */}
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/90 border border-white/10 shadow-xl shadow-indigo-950/40 text-xs font-semibold text-slate-200 backdrop-blur-xl">
             <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -92,13 +92,13 @@ export const Home: React.FC = () => {
             <span className="gradient-brand">Print Workstation</span>
           </h1>
 
-          <p className="text-sm sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed">
             The ultra-fast digital suite crafted for <strong className="text-white">Cyber Cafes</strong>, <strong className="text-white">Photo Studios</strong>, students, and job applicants.
             Generate passport photo sheets, merge two-sided ID cards, and convert PDFs with 100% in-browser privacy.
           </p>
 
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto pt-2">
+          <div className="max-w-3xl mx-auto pt-2">
             <div className="relative flex items-center shadow-2xl shadow-indigo-950/60 rounded-3xl bg-slate-900/90 border border-white/10 hover:border-indigo-500/50 focus-within:border-indigo-500 transition-all">
               <div className="p-3 pl-4 text-indigo-400">
                 <Search className="w-5 h-5 pointer-events-none" />
@@ -157,7 +157,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Cyber Cafe & Studio Quick Workflow Highlights */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-heading font-bold text-white tracking-tight flex items-center gap-2">
@@ -249,19 +249,32 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Category Tabs & Tool Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-8">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-heading font-black text-white tracking-tight">
-              All Tools &amp; Utilities
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Select a utility category to filter or search above
-            </p>
+      <section className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="space-y-6 mb-8">
+          {/* Header Title & Description */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold text-indigo-400 mb-2">
+                <Layers className="w-3.5 h-3.5" />
+                <span>All-In-One Cyber Suite</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-black text-white tracking-tight">
+                All Tools &amp; Utilities
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                Select a utility category to filter or search across all in-browser workstation tools
+              </p>
+            </div>
+
+            {/* Total Count Badge */}
+            <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-semibold text-slate-300 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Showing <strong>{filteredTools.length}</strong> of {ALL_TOOLS.length} utilities</span>
+            </div>
           </div>
 
-          {/* Category Filter Pills with counts */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
+          {/* Category Filter Pills - Responsive Clean Flex Wrap */}
+          <div className="flex flex-wrap items-center gap-2 p-1.5 sm:p-2 rounded-2xl bg-slate-900/70 border border-white/10 backdrop-blur-xl shadow-lg shadow-black/20">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isSelected = selectedCategory === cat.id;
@@ -271,16 +284,16 @@ export const Home: React.FC = () => {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shadow-xs ${
+                  className={`inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-102'
-                      : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-white/10'
+                      ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
                   <span>{cat.label}</span>
                   <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                       isSelected ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
                     }`}
                   >
@@ -293,7 +306,7 @@ export const Home: React.FC = () => {
         </div>
 
         {/* Tools Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
           {filteredTools.map((tool) => (
             <ToolCard key={tool.id} tool={tool} />
           ))}
@@ -318,7 +331,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Feature Architecture Highlights Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold">
             <Cpu className="w-3.5 h-3.5" />
@@ -376,7 +389,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* How It Works in 3 Steps */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full px-4 sm:px-6 lg:px-8">
         <div className="p-8 sm:p-12 rounded-3xl bg-slate-900/80 border border-white/10 shadow-2xl space-y-8 backdrop-blur-xl">
           <div className="text-center space-y-2 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-heading font-black text-white tracking-tight">
@@ -422,48 +435,50 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Interactive FAQ Accordion */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-2 mb-8">
-          <h2 className="text-2xl sm:text-3xl font-heading font-black text-white tracking-tight">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
-            Everything you need to know about Nexora Tools.
-          </p>
-        </div>
+      <section className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center space-y-2 mb-8">
+            <h2 className="text-2xl sm:text-3xl font-heading font-black text-white tracking-tight">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400">
+              Everything you need to know about Nexora Tools.
+            </p>
+          </div>
 
-        <div className="space-y-3">
-          {faqs.map((faq, index) => {
-            const isOpen = openFaq === index;
-            return (
-              <div
-                key={index}
-                className="rounded-2xl bg-slate-900/80 border border-white/10 overflow-hidden transition-all"
-              >
-                <button
-                  onClick={() => setOpenFaq(isOpen ? null : index)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-white hover:text-indigo-300 transition-colors cursor-pointer"
+          <div className="space-y-3">
+            {faqs.map((faq, index) => {
+              const isOpen = openFaq === index;
+              return (
+                <div
+                  key={index}
+                  className="rounded-2xl bg-slate-900/80 border border-white/10 overflow-hidden transition-all"
                 >
-                  <span>{faq.q}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                      isOpen ? 'rotate-180 text-indigo-400' : ''
-                    }`}
-                  />
-                </button>
-                {isOpen && (
-                  <div className="px-5 pb-5 text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-3 animate-in fade-in duration-150">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : index)}
+                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-white hover:text-indigo-300 transition-colors cursor-pointer"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180 text-indigo-400' : ''
+                      }`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-5 pb-5 text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-3 animate-in fade-in duration-150">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* Zero Server Storage Privacy Callout Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+      <section className="w-full px-4 sm:px-6 lg:px-8 pb-4">
         <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 border border-indigo-500/25 shadow-2xl relative overflow-hidden backdrop-blur-xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div className="space-y-4">

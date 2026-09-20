@@ -70,7 +70,7 @@ export const ImageCompress: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Image Compressor (Exact KB)"
         description="Compress photos to exact target file sizes (20KB, 50KB, 100KB, 200KB) for government exams, job portals, and visa applications."

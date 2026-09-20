@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { LanguageProvider } from './context/LanguageContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { MobileNav } from './components/layout/MobileNav';
@@ -25,9 +26,11 @@ import { PDFToImage } from './pages/PDFTools/PDFToImage';
 import { MergePDF } from './pages/PDFTools/MergePDF';
 import { SplitPDF } from './pages/PDFTools/SplitPDF';
 import { CompressPDF } from './pages/PDFTools/CompressPDF';
-// Scanner & Batch
+import { PDFWatermark } from './pages/PDFTools/PDFWatermark';
+// Scanner & Batch & QR
 import { DocumentScanner } from './pages/Scanner/DocumentScanner';
 import { BatchTools } from './pages/BatchProcessing/BatchTools';
+import { QRCodeStudio } from './pages/Utilities/QRCodeStudio';
 // Admin & Info
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { PrivacyPolicy } from './pages/Info/PrivacyPolicy';
@@ -47,64 +50,68 @@ const ScrollToTop: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500/30 selection:text-indigo-300 relative overflow-hidden">
-        {/* Ambient Lighting Orbs */}
-        <div className="fixed top-0 left-1/4 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse-subtle" />
-        <div className="fixed top-1/3 right-1/4 translate-x-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10" />
-        <div className="fixed bottom-10 left-1/3 w-[450px] h-[450px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+    <LanguageProvider>
+      <BrowserRouter>
+        <ScrollToTop />
+        <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500/30 selection:text-indigo-300 relative overflow-hidden">
+          {/* Ambient Lighting Orbs */}
+          <div className="fixed top-0 left-1/4 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse-subtle" />
+          <div className="fixed top-1/3 right-1/4 translate-x-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+          <div className="fixed bottom-10 left-1/3 w-[450px] h-[450px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
 
-        <Navbar />
+          <Navbar />
 
-        <main className="flex-1 pt-4 sm:pt-6 pb-20 lg:pb-10 relative z-10">
-          <Routes>
-            {/* Home */}
-            <Route path="/" element={<Home />} />
+          <main className="flex-1 w-full pt-4 sm:pt-6 pb-20 lg:pb-10 relative z-10">
+            <Routes>
+              {/* Home */}
+              <Route path="/" element={<Home />} />
 
-            {/* Photo Suite */}
-            <Route path="/photo/passport" element={<PassportPhotoMaker />} />
-            <Route path="/photo/bg-remover" element={<BackgroundRemover />} />
-            <Route path="/photo/compress" element={<ImageCompress />} />
-            <Route path="/photo/resize" element={<ImageResize />} />
-            <Route path="/photo/crop-rotate" element={<ImageCropRotate />} />
-            <Route path="/photo/signature" element={<SignatureTool />} />
+              {/* Photo Suite */}
+              <Route path="/photo/passport" element={<PassportPhotoMaker />} />
+              <Route path="/photo/bg-remover" element={<BackgroundRemover />} />
+              <Route path="/photo/compress" element={<ImageCompress />} />
+              <Route path="/photo/resize" element={<ImageResize />} />
+              <Route path="/photo/crop-rotate" element={<ImageCropRotate />} />
+              <Route path="/photo/signature" element={<SignatureTool />} />
 
-            {/* ID Card Suite */}
-            <Route path="/id/merger" element={<IDMerger />} />
-            <Route path="/id/aadhaar" element={<AadhaarMerger />} />
+              {/* ID Card Suite */}
+              <Route path="/id/merger" element={<IDMerger />} />
+              <Route path="/id/aadhaar" element={<AadhaarMerger />} />
 
-            {/* Print Studio */}
-            <Route path="/print/passport-sheet" element={<PassportPhotoSheet />} />
-            <Route path="/print/studio" element={<PrintStudio />} />
+              {/* Print Studio */}
+              <Route path="/print/passport-sheet" element={<PassportPhotoSheet />} />
+              <Route path="/print/studio" element={<PrintStudio />} />
 
-            {/* PDF Suite */}
-            <Route path="/pdf/image-to-pdf" element={<ImageToPDF />} />
-            <Route path="/pdf/pdf-to-image" element={<PDFToImage />} />
-            <Route path="/pdf/merge" element={<MergePDF />} />
-            <Route path="/pdf/split" element={<SplitPDF />} />
-            <Route path="/pdf/compress" element={<CompressPDF />} />
+              {/* PDF Suite */}
+              <Route path="/pdf/image-to-pdf" element={<ImageToPDF />} />
+              <Route path="/pdf/pdf-to-image" element={<PDFToImage />} />
+              <Route path="/pdf/merge" element={<MergePDF />} />
+              <Route path="/pdf/split" element={<SplitPDF />} />
+              <Route path="/pdf/compress" element={<CompressPDF />} />
+              <Route path="/pdf/watermark" element={<PDFWatermark />} />
 
-            {/* Scanner & Batch */}
-            <Route path="/scanner" element={<DocumentScanner />} />
-            <Route path="/batch" element={<BatchTools />} />
+              {/* Scanner, Batch & QR */}
+              <Route path="/scanner" element={<DocumentScanner />} />
+              <Route path="/batch" element={<BatchTools />} />
+              <Route path="/tools/qr-generator" element={<QRCodeStudio />} />
 
-            {/* Admin & Info */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/contact" element={<Contact />} />
+              {/* Admin & Info */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/contact" element={<Contact />} />
 
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+              {/* 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
 
-        <Footer />
-        <MobileNav />
-      </div>
-    </BrowserRouter>
+          <Footer />
+          <MobileNav />
+        </div>
+      </BrowserRouter>
+    </LanguageProvider>
   );
 };
 

@@ -14,12 +14,16 @@ import {
   Sliders,
   RefreshCw,
   ChevronDown,
-  Maximize2,
+  FileCheck2,
+  Award,
+  Calendar,
+  User,
 } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
 import { DownloadDropdown } from '../../components/common/DownloadDropdown';
 import { PASSPORT_SIZE_PRESETS } from '../../types/passport';
+import { EXAM_VISA_PRESETS } from '../../data/examPresets';
 import {
   BG_PRESET_COLORS,
   removeBackgroundAI,
@@ -38,7 +42,19 @@ export const PassportPhotoMaker: React.FC = () => {
   const [customWidthMm, setCustomWidthMm] = useState<number>(35);
   const [customHeightMm, setCustomHeightMm] = useState<number>(45);
   const [isPresetDropdownOpen, setIsPresetDropdownOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'standard' | 'exam_visa'>('exam_visa');
   const presetDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Name & Date on Photo (SSC, UPSC, NEET, etc.)
+  const [addNameDateStrip, setAddNameDateStrip] = useState<boolean>(false);
+  const [candidateName, setCandidateName] = useState<string>('');
+  const [photoDate, setPhotoDate] = useState<string>(() => {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    return `DOP: ${dd}-${mm}-${yyyy}`;
+  });
 
   // Background & AI Segment Settings
   const [aiBgRemoval, setAiBgRemoval] = useState<boolean>(true);
@@ -181,6 +197,44 @@ export const PassportPhotoMaker: React.FC = () => {
 
     ctx.drawImage(subjectToDraw, -drawW / 2, -drawH / 2, drawW, drawH);
     ctx.restore();
+
+    // 4. Draw Official Name & Date Strip (SSC / UPSC / NTA format)
+    if (addNameDateStrip && (candidateName.trim() || photoDate.trim())) {
+      const stripHeight = Math.round(heightPx * 0.18);
+      const stripY = heightPx - stripHeight;
+
+      // Solid White Strip
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, stripY, widthPx, stripHeight);
+
+      // Top separating hairline border
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = Math.max(1, Math.round(widthPx * 0.004));
+      ctx.beginPath();
+      ctx.moveTo(0, stripY);
+      ctx.lineTo(widthPx, stripY);
+      ctx.stroke();
+
+      // Typography
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const fontSize = Math.round(stripHeight * 0.32);
+
+      if (candidateName.trim() && photoDate.trim()) {
+        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+        ctx.fillText(candidateName.trim().toUpperCase(), widthPx / 2, stripY + stripHeight * 0.32);
+        ctx.font = `600 ${Math.round(fontSize * 0.85)}px Arial, sans-serif`;
+        ctx.fillText(photoDate.trim().toUpperCase(), widthPx / 2, stripY + stripHeight * 0.72);
+      } else if (candidateName.trim()) {
+        ctx.font = `bold ${Math.round(fontSize * 1.1)}px Arial, sans-serif`;
+        ctx.fillText(candidateName.trim().toUpperCase(), widthPx / 2, stripY + stripHeight * 0.5);
+      } else if (photoDate.trim()) {
+        ctx.font = `600 ${Math.round(fontSize * 1.0)}px Arial, sans-serif`;
+        ctx.fillText(photoDate.trim().toUpperCase(), widthPx / 2, stripY + stripHeight * 0.5);
+      }
+    }
   }, [
     originalImage,
     segmentedCanvas,
@@ -193,6 +247,9 @@ export const PassportPhotoMaker: React.FC = () => {
     panY,
     rotation,
     zoom,
+    addNameDateStrip,
+    candidateName,
+    photoDate,
   ]);
 
   useEffect(() => {
@@ -230,7 +287,7 @@ export const PassportPhotoMaker: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Passport Photo Maker"
         description="Create official passport and visa photos with automatic AI background removal, studio backdrop replacer, and ICAO biometric guides."
@@ -511,107 +568,220 @@ export const PassportPhotoMaker: React.FC = () => {
               )}
             </div>
 
-            {/* Size Preset Selector Dropdown */}
-            <div
-              className={`p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-3 transition-all backdrop-blur-xl ${isPresetDropdownOpen
-                ? 'relative z-40 ring-1 ring-indigo-500/50 shadow-2xl shadow-indigo-950/40'
-                : 'relative z-10'
-                }`}
-              ref={presetDropdownRef}
-            >
+            {/* Official Indian Exam & Visa Quick Presets */}
+            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-slate-900/95 via-indigo-950/40 to-slate-900 border border-indigo-500/30 space-y-4 shadow-xl">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Maximize2 className="w-3.5 h-3.5 text-indigo-400" />
-                  Photo Size Dimensions
-                </h3>
-                <span className="text-[11px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">
-                  {selectedPreset === 'custom' ? `${customWidthMm}×${customHeightMm} mm` : `${activePreset.widthMm}×${activePreset.heightMm} mm`}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-indigo-400" />
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Govt Exam &amp; Visa Standards
+                  </h3>
+                </div>
+                <div className="flex rounded-xl bg-slate-950 p-1 border border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('exam_visa')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'exam_visa'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Exams &amp; Visa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('standard')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'standard'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Standard mm
+                  </button>
+                </div>
               </div>
 
-              {/* Dropdown Button */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsPresetDropdownOpen((prev) => !prev)}
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-700/80 hover:border-indigo-500/60 text-left transition-all cursor-pointer flex items-center justify-between shadow-inner group"
-                >
-                  <div className="space-y-0.5 pr-2 min-w-0">
-                    <span className="font-semibold text-xs sm:text-sm text-white block truncate group-hover:text-indigo-300 transition-colors">
-                      {activePreset.name}
-                    </span>
-                    <span className="text-[11px] text-slate-400 block truncate">
-                      {activePreset.description}
-                    </span>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-transform duration-200 shrink-0 ${isPresetDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Dropdown Options List */}
-                {isPresetDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 p-1.5 rounded-2xl bg-slate-900 border border-indigo-500/40 shadow-2xl shadow-black/90 z-50 space-y-1 max-h-64 overflow-y-auto backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150">
-                    {PASSPORT_SIZE_PRESETS.map((preset) => (
+              {activeTab === 'exam_visa' ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-slate-400">
+                    1-Click compliant dimensions, background color &amp; name strip:
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                    {EXAM_VISA_PRESETS.map((preset) => (
                       <button
                         key={preset.id}
                         type="button"
                         onClick={() => {
-                          setSelectedPreset(preset.id);
-                          setIsPresetDropdownOpen(false);
+                          setSelectedPreset('custom');
+                          setCustomWidthMm(preset.widthMm);
+                          setCustomHeightMm(preset.heightMm);
+                          if (preset.requireNameDate) {
+                            setAddNameDateStrip(true);
+                          }
+                          if (preset.bgColorHex) {
+                            setBackgroundColor('custom');
+                            setCustomHex(preset.bgColorHex);
+                          }
                         }}
-                        className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start justify-between gap-2 ${selectedPreset === preset.id
-                          ? 'bg-indigo-600/20 border-indigo-500/60 text-white shadow-sm'
-                          : 'bg-slate-950/60 border-transparent text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                          }`}
+                        className="p-2.5 rounded-2xl bg-slate-950/80 hover:bg-indigo-950/40 border border-white/10 hover:border-indigo-500/50 text-left transition-all cursor-pointer group flex flex-col justify-between"
                       >
-                        <div className="space-y-0.5 min-w-0">
-                          <span className="font-semibold text-xs text-white block">{preset.name}</span>
-                          <span className="text-[10.5px] text-slate-400 block leading-tight">
-                            {preset.description}
-                          </span>
+                        <div>
+                          <div className="font-bold text-xs text-slate-200 group-hover:text-indigo-300 truncate">
+                            {preset.name}
+                          </div>
+                          <div className="text-[10px] text-slate-400 truncate mt-0.5">
+                            {preset.widthMm}×{preset.heightMm} mm • {preset.minKb}-{preset.maxKb}KB
+                          </div>
                         </div>
-                        {selectedPreset === preset.id && (
-                          <Check className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
-                        )}
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-indigo-500/20 text-indigo-300 font-mono">
+                            {preset.category === 'govt_exam' ? 'Govt Exam' : 'Visa'}
+                          </span>
+                          {preset.requireNameDate && (
+                            <span className="text-[9px] text-amber-400 font-medium">+Name/Date</span>
+                          )}
+                        </div>
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                /* Standard mm Presets */
+                <div
+                  className="space-y-3"
+                  ref={presetDropdownRef}
+                >
+                  {/* Dropdown Button */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsPresetDropdownOpen((prev) => !prev)}
+                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-700/80 hover:border-indigo-500/60 text-left transition-all cursor-pointer flex items-center justify-between shadow-inner group"
+                    >
+                      <div className="space-y-0.5 pr-2 min-w-0">
+                        <span className="font-semibold text-xs sm:text-sm text-white block truncate group-hover:text-indigo-300 transition-colors">
+                          {activePreset.name}
+                        </span>
+                        <span className="text-[11px] text-slate-400 block truncate">
+                          {activePreset.description}
+                        </span>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-transform duration-200 shrink-0 ${isPresetDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
 
-              {/* Active Preset Spec Summary */}
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
-                <span>
-                  Target DPI: <strong className="text-slate-200 font-mono">300 DPI</strong>
-                </span>
-                <span>
-                  Resolution:{' '}
-                  <strong className="text-cyan-400 font-mono">
-                    {selectedPreset === 'custom'
-                      ? `${mmToPixels(customWidthMm, 300)} × ${mmToPixels(customHeightMm, 300)} px`
-                      : `${activePreset.widthPx} × ${activePreset.heightPx} px`}
-                  </strong>
-                </span>
-              </div>
+                    {/* Dropdown Options List */}
+                    {isPresetDropdownOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-1.5 p-1.5 rounded-2xl bg-slate-900 border border-indigo-500/40 shadow-2xl shadow-black/90 z-50 space-y-1 max-h-64 overflow-y-auto backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+                        {PASSPORT_SIZE_PRESETS.map((preset) => (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedPreset(preset.id);
+                              setIsPresetDropdownOpen(false);
+                            }}
+                            className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start justify-between gap-2 ${selectedPreset === preset.id
+                              ? 'bg-indigo-600/20 border-indigo-500/60 text-white shadow-sm'
+                              : 'bg-slate-950/60 border-transparent text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                              }`}
+                          >
+                            <div className="space-y-0.5 min-w-0">
+                              <span className="font-semibold text-xs text-white block">{preset.name}</span>
+                              <span className="text-[10.5px] text-slate-400 block leading-tight">
+                                {preset.description}
+                              </span>
+                            </div>
+                            {selectedPreset === preset.id && (
+                              <Check className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-              {/* Custom Dimension Inputs */}
-              {selectedPreset === 'custom' && (
-                <div className="pt-2 grid grid-cols-2 gap-3 border-t border-slate-800 animate-in fade-in duration-200">
+                  {/* Custom Dimension Inputs */}
+                  {selectedPreset === 'custom' && (
+                    <div className="pt-2 grid grid-cols-2 gap-3 border-t border-slate-800 animate-in fade-in duration-200">
+                      <div>
+                        <label className="text-xs text-slate-400 block mb-1">Width (mm)</label>
+                        <input
+                          type="number"
+                          value={customWidthMm}
+                          onChange={(e) => setCustomWidthMm(Math.max(10, parseInt(e.target.value) || 35))}
+                          className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400 block mb-1">Height (mm)</label>
+                        <input
+                          type="number"
+                          value={customHeightMm}
+                          onChange={(e) => setCustomHeightMm(Math.max(10, parseInt(e.target.value) || 45))}
+                          className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Candidate Name & Date of Photo (DoP) Strip Tool */}
+            <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-white/10 space-y-3.5 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileCheck2 className="w-4 h-4 text-amber-400" />
                   <div>
-                    <label className="text-xs text-slate-400 block mb-1">Width (mm)</label>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Name &amp; Date of Photo (DoP)
+                    </h3>
+                    <span className="text-[10px] text-slate-400">SSC, UPSC, NTA NEET/JEE Mandate</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setAddNameDateStrip(!addNameDateStrip)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    addNameDateStrip
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
+                      : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  }`}
+                >
+                  {addNameDateStrip ? '✓ Strip Active' : 'Off'}
+                </button>
+              </div>
+
+              {addNameDateStrip && (
+                <div className="space-y-3 pt-2 border-t border-slate-800 animate-in fade-in duration-200">
+                  <div>
+                    <label className="text-xs text-slate-300 font-medium flex items-center gap-1.5 mb-1">
+                      <User className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Candidate Full Name:</span>
+                    </label>
                     <input
-                      type="number"
-                      value={customWidthMm}
-                      onChange={(e) => setCustomWidthMm(Math.max(10, parseInt(e.target.value) || 35))}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
+                      type="text"
+                      value={candidateName}
+                      onChange={(e) => setCandidateName(e.target.value)}
+                      placeholder="e.g. RAHUL KUMAR SHARMA"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs uppercase font-semibold focus:border-indigo-500 focus:outline-none placeholder-slate-600"
                     />
                   </div>
+
                   <div>
-                    <label className="text-xs text-slate-400 block mb-1">Height (mm)</label>
+                    <label className="text-xs text-slate-300 font-medium flex items-center gap-1.5 mb-1">
+                      <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Date of Taking Photo (DoP):</span>
+                    </label>
                     <input
-                      type="number"
-                      value={customHeightMm}
-                      onChange={(e) => setCustomHeightMm(Math.max(10, parseInt(e.target.value) || 45))}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
+                      type="text"
+                      value={photoDate}
+                      onChange={(e) => setPhotoDate(e.target.value)}
+                      placeholder="e.g. DOP: 20-09-2026"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs uppercase font-mono focus:border-cyan-500 focus:outline-none placeholder-slate-600"
                     />
                   </div>
                 </div>

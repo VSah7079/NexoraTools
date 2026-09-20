@@ -51,7 +51,7 @@ export const MergePDF: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Merge PDF Files"
         description="Combine multiple PDF documents into a single organized file in seconds with instant client-side processing."

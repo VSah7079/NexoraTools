@@ -169,6 +169,17 @@ export const ALL_TOOLS: ToolItem[] = [
     iconName: 'FileArchive',
     color: 'from-emerald-500 to-green-600',
   },
+  {
+    id: 'pdf-watermark',
+    name: 'PDF Watermark & Stamping',
+    shortName: 'PDF Watermark',
+    description: 'Add verification stamps, confidential seals, diagonal grid protection, and opacity controls.',
+    category: 'pdf',
+    path: '/pdf/watermark',
+    iconName: 'ShieldAlert',
+    badge: 'Security Seal',
+    color: 'from-rose-500 to-indigo-600',
+  },
 
   // 5. Scanner
   {
@@ -184,7 +195,19 @@ export const ALL_TOOLS: ToolItem[] = [
     color: 'from-cyan-500 to-blue-600',
   },
 
-  // 6. Batch Processing
+  // 6. Batch & Utilities
+  {
+    id: 'qr-generator',
+    name: 'QR Code & UPI Standee Studio',
+    shortName: 'QR Studio',
+    description: 'Create high-res vector QR codes for instant UPI payment (PhonePe, GPay, Paytm), Wi-Fi, URL, and tabletop standee sheets.',
+    category: 'print',
+    path: '/tools/qr-generator',
+    iconName: 'QrCode',
+    badge: 'UPI & Standee',
+    popular: true,
+    color: 'from-indigo-500 to-pink-600',
+  },
   {
     id: 'batch-processing',
     name: 'Batch Photo Processor',

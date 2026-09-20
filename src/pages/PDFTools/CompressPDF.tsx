@@ -57,7 +57,7 @@ export const CompressPDF: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Compress PDF Document"
         description="Reduce PDF file size for email attachments and portal upload limits without losing readability."

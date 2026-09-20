@@ -4,6 +4,7 @@ import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
 import { DownloadDropdown } from '../../components/common/DownloadDropdown';
 import { loadImage, mmToPixels } from '../../utils/canvasUtils';
+import { EXAM_VISA_PRESETS } from '../../data/examPresets';
 
 type Unit = 'px' | 'mm' | 'cm' | 'inch';
 
@@ -72,7 +73,7 @@ export const ImageResize: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Image Resizer & DPI Converter"
         description="Resize image dimensions by pixels, millimeters, centimeters, or inches with aspect ratio lock and 300 DPI support."
@@ -128,6 +129,34 @@ export const ImageResize: React.FC = () => {
               <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                 Dimensions &amp; Units
               </h3>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300 block">
+                  1-Click Exam &amp; Visa Dimension Presets:
+                </label>
+                <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                  {EXAM_VISA_PRESETS.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        setUnit('mm');
+                        setLockAspect(false);
+                        setWidth(p.widthMm);
+                        setHeight(p.heightMm);
+                      }}
+                      className="p-2 rounded-xl bg-slate-950 hover:bg-amber-950/40 border border-white/10 hover:border-amber-500/50 text-left transition-all cursor-pointer group"
+                    >
+                      <div className="text-xs font-bold text-slate-200 group-hover:text-amber-300 truncate">
+                        {p.name}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono">
+                        {p.widthMm}×{p.heightMm} mm
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 text-xs font-semibold">
                 {(['px', 'mm', 'cm', 'inch'] as Unit[]).map((u) => (

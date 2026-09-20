@@ -340,7 +340,7 @@ export const ImageCropRotate: React.FC = () => {
   const cropHeightPct = (crop.height / imgH) * 100;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Smart Auto-Crop & Manual Image Studio"
         description="Upload any photo to automatically detect and crop subjects. Switch to manual mode anytime to drag crop handles, change aspect ratio, straighten, or rotate."

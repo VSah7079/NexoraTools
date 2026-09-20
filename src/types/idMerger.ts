@@ -3,6 +3,8 @@ export type DocumentType =
   | 'voter'
   | 'pan'
   | 'driving_licence'
+  | 'ayushman'
+  | 'eshram'
   | 'college_id'
   | 'employee_id'
   | 'generic_id'
@@ -27,6 +29,28 @@ export const DOCUMENT_PRESETS: DocumentPreset[] = [
     subtitle: 'Merge Front (Name/Photo/UID) & Back (Address/QR) on A4 or single page',
     frontLabel: 'Aadhaar Front Side',
     backLabel: 'Aadhaar Back Side',
+    defaultLayout: 'vertical',
+    aspectRatio: 1.585,
+    recommendedWidthMm: 85.6,
+    recommendedHeightMm: 53.98,
+  },
+  {
+    id: 'ayushman',
+    title: 'Ayushman Card (PM-JAY)',
+    subtitle: 'Pradhan Mantri Jan Arogya Yojana Golden Card 2-Side Merge',
+    frontLabel: 'Ayushman Front (Photo & ABHA)',
+    backLabel: 'Ayushman Back (Guidelines & QR)',
+    defaultLayout: 'vertical',
+    aspectRatio: 1.585,
+    recommendedWidthMm: 85.6,
+    recommendedHeightMm: 53.98,
+  },
+  {
+    id: 'eshram',
+    title: 'E-Shram Card (UAN)',
+    subtitle: 'Ministry of Labour & Employment E-Shram National Card',
+    frontLabel: 'E-Shram Front (UAN/Photo)',
+    backLabel: 'E-Shram Back (Occupation/QR)',
     defaultLayout: 'vertical',
     aspectRatio: 1.585,
     recommendedWidthMm: 85.6,

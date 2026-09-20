@@ -74,7 +74,7 @@ export const ImageToPDF: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Image to PDF Converter"
         description="Convert multiple JPG, PNG, and WebP images into a single professional PDF document with custom margins, A4 layout, and reordering."

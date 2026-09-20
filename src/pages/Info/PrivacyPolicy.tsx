@@ -4,7 +4,7 @@ import { ToolHeader } from '../../components/common/ToolHeader';
 
 export const PrivacyPolicy: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 space-y-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-16 space-y-8">
       <ToolHeader
         title="Privacy & Zero-Retention Policy"
         description="Official privacy architecture commitment by Nexora Lab Technologies for Nexora Tools."

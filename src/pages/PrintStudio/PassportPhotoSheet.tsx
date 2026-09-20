@@ -406,7 +406,7 @@ export const PassportPhotoSheet: React.FC = () => {
   const isFullyFilled = settings.copiesCount >= totalPossible;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
       <ToolHeader
         title="Passport Photo Studio & Print Sheet Generator"
         description="All-in-one studio: Crop, rotate, AI background color changer, lighting retouch, and auto-arranged 300 DPI print sheets."

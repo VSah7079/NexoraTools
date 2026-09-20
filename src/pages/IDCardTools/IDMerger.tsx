@@ -406,7 +406,7 @@ export const IDMerger: React.FC<IDMergerProps> = ({ defaultDocType = 'aadhaar' }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
       <ToolHeader
         title="Two-Sided ID Card Merger"
         description="Upload Aadhaar, Voter ID, PAN, or Driving Licence. Crop, rotate, and merge front & back sides into a clean 300 DPI A4 print sheet."

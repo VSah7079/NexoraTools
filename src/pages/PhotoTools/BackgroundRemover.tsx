@@ -207,7 +207,7 @@ export const BackgroundRemover: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="AI Background Remover & Replacer"
         description="Automatically remove and replace photo backgrounds with 100% original photo quality. Zero distortion, zero subject loss, only the background behind the photo is changed."
