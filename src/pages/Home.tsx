@@ -12,26 +12,37 @@ import {
   Layers,
   Search,
   CheckCircle2,
-  FileCheck,
   Lock,
   Cpu,
   Sparkles,
   ChevronDown,
   PrinterCheck,
+  ShieldAlert,
+  Flame,
 } from 'lucide-react';
 import { ALL_TOOLS } from '../data/toolsData';
 import { ToolCard } from '../components/common/ToolCard';
 import type { ToolCategory } from '../types/tools';
+import { usePageSEO } from '../utils/seoHelper';
 
 export const Home: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const categories: Array<{ id: ToolCategory | 'all'; label: string; icon: any }> = [
+  usePageSEO({
+    title: 'Free Photo, ID Card, PDF & Print Workstation (No Watermark)',
+    description:
+      '100% Free online workstation for passport photo maker (35×45mm), Aadhaar & ID card front+back merger on A4, exact 20KB/50KB image compressor, and PDF tools. Runs in browser RAM with zero server uploads.',
+    keywords:
+      'passport photo maker online, aadhaar card merge front back, id card merger a4, image compressor 20kb 50kb upsc ssc, ai background remover free, pdf watermark free, image to pdf, signature resizer, cyber cafe tools, csc center printing tools, 4x6 passport photo sheet, nexora tools',
+    canonicalPath: '/',
+  });
+
+  const categories: Array<{ id: ToolCategory | 'all'; label: string; icon: any; countBadge?: string }> = [
     { id: 'all', label: 'All Utilities', icon: Layers },
     { id: 'photo', label: 'Photo Suite', icon: UserCheck },
-    { id: 'id-card', label: 'ID Card Merger', icon: CreditCard },
+    { id: 'id-card', label: 'ID Card Merger', icon: CreditCard, countBadge: 'Popular' },
     { id: 'print', label: 'Print Studio', icon: Printer },
     { id: 'pdf', label: 'PDF Suite', icon: FileText },
     { id: 'scanner', label: 'Document Scanner', icon: Scan },
@@ -52,6 +63,16 @@ export const Home: React.FC = () => {
     return ALL_TOOLS.filter((t) => t.category === categoryId).length;
   };
 
+  const quickSearchTags = [
+    { label: 'Passport Photo 35×45mm', query: 'passport' },
+    { label: 'Aadhaar ID Card Merge', query: 'aadhaar' },
+    { label: 'Exact 20KB / 50KB Compress', query: 'compress' },
+    { label: 'AI Background Remover', query: 'background' },
+    { label: 'PDF Watermark', query: 'watermark' },
+    { label: 'UPI QR Standee', query: 'qr' },
+    { label: 'Image to PDF', query: 'pdf' },
+  ];
+
   const faqs = [
     {
       q: 'Is it safe to process sensitive government IDs like Aadhaar, PAN, and Voter ID here?',
@@ -66,40 +87,52 @@ export const Home: React.FC = () => {
       a: 'Our compression engine uses binary-search iterative quantization in WebAssembly to target exact file limits (e.g. 20KB, 50KB, 100KB) while preserving facial sharp lines and signature ink clarity for government exam portals (UPSC, SSC, State PSC, IBPS).',
     },
     {
+      q: 'Can I use NexoraTools for high-volume commercial printing in my Cyber Cafe or Studio?',
+      a: 'Yes, completely! NexoraTools is engineered specifically to save time for Cyber Cafe operators, CSC centers, and studio photographers. There are no daily usage limits, no subscriptions, and all PDF/photo outputs are 300 DPI print-ready.',
+    },
+    {
       q: 'Are there any hidden watermarks, page limits, or subscription paywalls?',
-      a: 'None whatsoever. All 16+ utilities are 100% free forever under Nexora Lab Technologies. Every exported JPG, PNG, and PDF is completely clean with zero watermarks and full 300 DPI resolution.',
+      a: 'None whatsoever. All 16+ utilities are 100% free forever under Nexora Lab Technologies. Every exported JPG, PNG, and PDF is completely clean with zero watermarks and full studio resolution.',
     },
   ];
 
   return (
-    <div className="space-y-20 sm:space-y-24">
+    <div className="space-y-16 sm:space-y-24">
       {/* Hero Section */}
-      <section className="relative pt-6 sm:pt-14 pb-4 overflow-hidden text-center">
+      <section className="relative pt-6 sm:pt-12 pb-6 overflow-hidden text-center">
+        {/* Decorative ambient beams */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-gradient-to-r from-indigo-600/15 via-purple-600/15 to-cyan-500/15 rounded-full blur-[100px] pointer-events-none -z-10" />
+
         <div className="max-w-5xl mx-auto px-4 space-y-6 sm:space-y-8">
-          {/* Live Status Pill */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/90 border border-white/10 shadow-xl shadow-indigo-950/40 text-xs font-semibold text-slate-200 backdrop-blur-xl">
+          {/* Live Status Chip */}
+          <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-slate-900/90 border border-white/10 shadow-xl shadow-indigo-950/40 text-xs font-semibold text-slate-200 backdrop-blur-xl hover:border-indigo-500/40 transition-colors">
             <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-emerald-400 font-bold">100% Free Forever</span>
             <span className="text-slate-600">•</span>
-            <span>Zero Watermarks</span>
+            <span className="text-slate-300">Zero Watermarks</span>
             <span className="text-slate-600">•</span>
-            <span className="text-cyan-400 font-bold">In-Browser RAM Engine</span>
+            <span className="text-cyan-400 font-bold flex items-center gap-1">
+              <Cpu className="w-3 h-3 inline" />
+              In-Browser RAM Engine
+            </span>
           </div>
 
           {/* Main Headline */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-heading font-black text-white tracking-tight leading-[1.12]">
-            High-Speed Photo, Document, ID &amp;{' '}
-            <span className="gradient-brand">Print Workstation</span>
+            High-Speed Photo, ID Card, PDF &amp;{' '}
+            <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 bg-clip-text text-transparent">
+              Print Workstation
+            </span>
           </h1>
 
           <p className="text-sm sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            The ultra-fast digital suite crafted for <strong className="text-white">Cyber Cafes</strong>, <strong className="text-white">Photo Studios</strong>, students, and job applicants.
-            Generate passport photo sheets, merge two-sided ID cards, and convert PDFs with 100% in-browser privacy.
+            The ultra-fast digital productivity suite built for <strong className="text-white font-semibold">Cyber Cafes</strong>, <strong className="text-white font-semibold">Photo Studios</strong>, CSC Centers, and students.
+            Generate passport photo sheets, merge two-sided ID cards, and optimize files with 100% in-browser privacy.
           </p>
 
-          {/* Search Bar */}
+          {/* Search Box */}
           <div className="max-w-3xl mx-auto pt-2">
-            <div className="relative flex items-center shadow-2xl shadow-indigo-950/60 rounded-3xl bg-slate-900/90 border border-white/10 hover:border-indigo-500/50 focus-within:border-indigo-500 transition-all">
+            <div className="relative flex items-center shadow-2xl shadow-indigo-950/60 rounded-3xl bg-slate-900/90 border border-white/10 hover:border-indigo-500/50 focus-within:border-indigo-500 transition-all p-1">
               <div className="p-3 pl-4 text-indigo-400">
                 <Search className="w-5 h-5 pointer-events-none" />
               </div>
@@ -108,90 +141,96 @@ export const Home: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search utilities (e.g. Passport 35x45mm, Aadhaar card merge, 20KB compress, PDF)..."
-                className="w-full py-4 pr-12 bg-transparent text-white placeholder-slate-500 focus:outline-none text-sm sm:text-base font-medium"
+                className="w-full py-3.5 pr-12 bg-transparent text-white placeholder-slate-500 focus:outline-none text-sm sm:text-base font-medium"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-4 text-xs font-bold text-slate-400 hover:text-white px-2.5 py-1 rounded-lg bg-white/10 transition-colors"
+                  className="absolute right-4 text-xs font-bold text-slate-400 hover:text-white px-2.5 py-1 rounded-lg bg-white/10 transition-colors cursor-pointer"
                 >
                   Clear
                 </button>
               )}
             </div>
+
+            {/* Quick Search Tag Chips */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 pt-3.5 text-xs">
+              <span className="text-slate-500 font-medium text-[11px]">Quick Search:</span>
+              {quickSearchTags.map((tag) => (
+                <button
+                  key={tag.query}
+                  onClick={() => setSearchQuery(tag.query)}
+                  className="px-2.5 py-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-white/5 hover:border-white/20 text-[11px] font-medium transition-colors cursor-pointer"
+                >
+                  {tag.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Quick Action Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs text-slate-400">
-            <span className="font-semibold text-slate-500">Popular Workflows:</span>
-            <Link
-              to="/photo/passport"
-              className="px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 hover:border-blue-500/40 transition-all font-medium flex items-center gap-1"
-            >
-              <UserCheck className="w-3.5 h-3.5 text-blue-400" />
-              <span>Passport Photo (35×45mm)</span>
-            </Link>
-            <Link
-              to="/id/merger"
-              className="px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 hover:border-purple-500/40 transition-all font-medium flex items-center gap-1"
-            >
-              <CreditCard className="w-3.5 h-3.5 text-purple-400" />
-              <span>Aadhaar / Voter ID Merge</span>
-            </Link>
-            <Link
-              to="/print/passport-sheet"
-              className="px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 hover:border-emerald-500/40 transition-all font-medium flex items-center gap-1"
-            >
-              <Printer className="w-3.5 h-3.5 text-emerald-400" />
-              <span>4×6" Print Sheet</span>
-            </Link>
-            <Link
-              to="/photo/compress"
-              className="px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 hover:border-teal-500/40 transition-all font-medium flex items-center gap-1"
-            >
-              <span className="font-bold text-teal-400 text-xs">KB</span>
-              <span>Exact 20KB / 50KB</span>
-            </Link>
+          {/* Quick Metrics Bar */}
+          <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto text-center">
+            <div className="p-3.5 rounded-2xl bg-slate-900/50 border border-white/5 backdrop-blur-md">
+              <div className="text-xl sm:text-2xl font-black font-heading text-white">16+</div>
+              <div className="text-[11px] text-slate-400 font-medium">Studio Utilities</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-slate-900/50 border border-white/5 backdrop-blur-md">
+              <div className="text-xl sm:text-2xl font-black font-heading text-indigo-400">300 DPI</div>
+              <div className="text-[11px] text-slate-400 font-medium">Razor-Sharp Print</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-slate-900/50 border border-white/5 backdrop-blur-md">
+              <div className="text-xl sm:text-2xl font-black font-heading text-emerald-400">0 MB</div>
+              <div className="text-[11px] text-slate-400 font-medium">Server Uploads (100% RAM)</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-slate-900/50 border border-white/5 backdrop-blur-md">
+              <div className="text-xl sm:text-2xl font-black font-heading text-cyan-400">₹0 Free</div>
+              <div className="text-[11px] text-slate-400 font-medium">No Subscription Ever</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Cyber Cafe & Studio Quick Workflow Highlights */}
+      {/* Featured Studio Workflows (4 Hero Cards) */}
       <section className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
-            <h2 className="text-xl sm:text-2xl font-heading font-bold text-white tracking-tight flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-400" />
-              <span>Essential Studio &amp; Cyber Cafe Workflows</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold text-indigo-400 mb-1.5">
+              <Flame className="w-3.5 h-3.5 text-amber-400" />
+              <span>High-Frequency Pipelines</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-heading font-black text-white tracking-tight">
+              Essential Cyber Cafe &amp; Studio Workflows
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-              1-Click accelerated pipelines for instant daily customer jobs
+              Instant 1-click workflows optimized for fast customer turnaround
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* Card 1: Passport to Sheet */}
           <Link
             to="/photo/passport"
-            className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-blue-950/40 via-slate-900/90 to-indigo-950/40 border border-blue-500/25 hover:border-blue-500/60 shadow-xl hover:shadow-2xl hover:shadow-blue-500/15 backdrop-blur-xl transition-all duration-300 group transform hover:-translate-y-1"
+            className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/50 via-slate-900/90 to-indigo-950/40 border border-blue-500/30 hover:border-blue-500/70 shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 backdrop-blur-xl transition-all duration-300 group flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3.5 rounded-2xl bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform shadow-md">
-                <UserCheck className="w-6 h-6" />
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-2xl bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform shadow-md">
+                  <UserCheck className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 uppercase tracking-wide">
+                  Top Choice
+                </span>
               </div>
-              <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                Studio Preset
-              </span>
+              <h3 className="text-base sm:text-lg font-heading font-bold text-white group-hover:text-blue-300 transition-colors">
+                Passport Photo Maker
+              </h3>
+              <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+                35×45mm, 2×2", 30×40mm with AI background replace and auto 4×6" / A4 print sheet generation.
+              </p>
             </div>
-            <h3 className="text-lg sm:text-xl font-heading font-bold text-white group-hover:text-blue-300 transition-colors">
-              Passport Photo to Print Sheet
-            </h3>
-            <p className="mt-2 text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Upload once, choose 35×45mm or 2×2", remove background with AI, and generate a 4×6" or A4 sheet with 8 to 36 copies ready for printing.
-            </p>
-            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-bold text-blue-400 group-hover:text-blue-300">
-              <span>Launch Studio Flow</span>
+            <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-blue-400 group-hover:text-blue-300">
+              <span>Create Photo Now</span>
               <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" />
             </div>
           </Link>
@@ -199,24 +238,26 @@ export const Home: React.FC = () => {
           {/* Card 2: Two-Sided ID Card Merger */}
           <Link
             to="/id/merger"
-            className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-purple-950/40 via-slate-900/90 to-violet-950/40 border border-purple-500/25 hover:border-purple-500/60 shadow-xl hover:shadow-2xl hover:shadow-purple-500/15 backdrop-blur-xl transition-all duration-300 group transform hover:-translate-y-1"
+            className="p-6 rounded-3xl bg-gradient-to-br from-purple-950/50 via-slate-900/90 to-violet-950/40 border border-purple-500/30 hover:border-purple-500/70 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 backdrop-blur-xl transition-all duration-300 group flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3.5 rounded-2xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform shadow-md">
-                <CreditCard className="w-6 h-6" />
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-2xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform shadow-md">
+                  <CreditCard className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase tracking-wide">
+                  Cyber Essential
+                </span>
               </div>
-              <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Cyber Cafe Essential
-              </span>
+              <h3 className="text-base sm:text-lg font-heading font-bold text-white group-hover:text-purple-300 transition-colors">
+                Two-Sided ID Merger
+              </h3>
+              <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+                Merge front &amp; back of Aadhaar, PAN, Voter ID &amp; Driving Licence into aligned A4 sheets instantly.
+              </p>
             </div>
-            <h3 className="text-lg sm:text-xl font-heading font-bold text-white group-hover:text-purple-300 transition-colors">
-              Two-Sided ID Card Merger
-            </h3>
-            <p className="mt-2 text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Merge front and back sides of Aadhaar, Voter ID, PAN, and Driving Licence into aligned horizontal or vertical A4 print layouts in seconds.
-            </p>
-            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-bold text-purple-400 group-hover:text-purple-300">
-              <span>Merge Cards Now</span>
+            <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-purple-400 group-hover:text-purple-300">
+              <span>Merge Cards</span>
               <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" />
             </div>
           </Link>
@@ -224,24 +265,53 @@ export const Home: React.FC = () => {
           {/* Card 3: Exact KB Optimizer */}
           <Link
             to="/photo/compress"
-            className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-emerald-950/40 via-slate-900/90 to-teal-950/40 border border-emerald-500/25 hover:border-emerald-500/60 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/15 backdrop-blur-xl transition-all duration-300 group transform hover:-translate-y-1"
+            className="p-6 rounded-3xl bg-gradient-to-br from-emerald-950/50 via-slate-900/90 to-teal-950/40 border border-emerald-500/30 hover:border-emerald-500/70 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/20 backdrop-blur-xl transition-all duration-300 group flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3.5 rounded-2xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform shadow-md">
-                <FileCheck className="w-6 h-6" />
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform shadow-md">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wide">
+                  Govt Portals
+                </span>
               </div>
-              <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Govt Portals
-              </span>
+              <h3 className="text-base sm:text-lg font-heading font-bold text-white group-hover:text-emerald-300 transition-colors">
+                Exact KB Compressor
+              </h3>
+              <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+                Compress photos &amp; signatures to exact 20KB, 50KB or 100KB limits without facial blur or quality loss.
+              </p>
             </div>
-            <h3 className="text-lg sm:text-xl font-heading font-bold text-white group-hover:text-emerald-300 transition-colors">
-              Exact File Size Optimizer
-            </h3>
-            <p className="mt-2 text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Hit exact 20KB, 50KB, or 100KB limits for UPSC, SSC, state service exams, marksheets, and signatures without loss of legibility.
-            </p>
-            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-bold text-emerald-400 group-hover:text-emerald-300">
-              <span>Compress Image</span>
+            <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-400 group-hover:text-emerald-300">
+              <span>Target File Size</span>
+              <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" />
+            </div>
+          </Link>
+
+          {/* Card 4: PDF Power Suite */}
+          <Link
+            to="/pdf/watermark"
+            className="p-6 rounded-3xl bg-gradient-to-br from-rose-950/50 via-slate-900/90 to-amber-950/40 border border-rose-500/30 hover:border-rose-500/70 shadow-xl hover:shadow-2xl hover:shadow-rose-500/20 backdrop-blur-xl transition-all duration-300 group flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-2xl bg-rose-500/20 text-rose-400 group-hover:scale-110 transition-transform shadow-md">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wide">
+                  Security
+                </span>
+              </div>
+              <h3 className="text-base sm:text-lg font-heading font-bold text-white group-hover:text-rose-300 transition-colors">
+                PDF Watermark &amp; Seal
+              </h3>
+              <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+                Add "FOR VERIFICATION ONLY" diagonal mesh or custom confidentiality stamps to PDFs securely.
+              </p>
+            </div>
+            <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-bold text-rose-400 group-hover:text-rose-300">
+              <span>Stamp PDF</span>
               <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" />
             </div>
           </Link>
@@ -262,7 +332,7 @@ export const Home: React.FC = () => {
                 All Tools &amp; Utilities
               </h2>
               <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Select a utility category to filter or search across all in-browser workstation tools
+                Select a category to filter or search across all in-browser workstation tools
               </p>
             </div>
 
@@ -273,7 +343,7 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Category Filter Pills - Responsive Clean Flex Wrap */}
+          {/* Category Filter Pills */}
           <div className="flex flex-wrap items-center gap-2 p-1.5 sm:p-2 rounded-2xl bg-slate-900/70 border border-white/10 backdrop-blur-xl shadow-lg shadow-black/20">
             {categories.map((cat) => {
               const Icon = cat.icon;
@@ -322,7 +392,7 @@ export const Home: React.FC = () => {
                 setSearchQuery('');
                 setSelectedCategory('all');
               }}
-              className="mt-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/30 hover:bg-indigo-500 transition-colors"
+              className="mt-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/30 hover:bg-indigo-500 transition-colors cursor-pointer"
             >
               Reset All Filters
             </button>
@@ -330,60 +400,138 @@ export const Home: React.FC = () => {
         )}
       </section>
 
-      {/* Feature Architecture Highlights Grid */}
+      {/* Studio Standard Paper & Exam Cheat-Sheet Matrix */}
+      <section className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="p-8 sm:p-10 rounded-3xl bg-slate-900/80 border border-white/10 shadow-2xl backdrop-blur-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold mb-2">
+                <PrinterCheck className="w-3.5 h-3.5" />
+                <span>Industry Standards Reference</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-heading font-black text-white tracking-tight">
+                Studio Paper &amp; Official Exam Standard Presets
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                Built-in hardware dimensional accuracy for Cyber Cafes, CSC and Studio Operators
+              </p>
+            </div>
+            <Link
+              to="/print/passport-sheet"
+              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 w-fit shadow-md shadow-indigo-950"
+            >
+              <span>Open Print Studio</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+              <div className="text-indigo-400 font-mono text-xs font-bold uppercase">A4 Sheet Paper</div>
+              <div className="text-base font-bold text-white">210 × 297 mm</div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Standard office paper for Aadhaar ID merge, certificates, application forms, and multi-card layouts.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+              <div className="text-emerald-400 font-mono text-xs font-bold uppercase">4×6" Glossy Photo</div>
+              <div className="text-base font-bold text-white">100 × 150 mm (10×15cm)</div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                The most popular studio size for 8-photo passport grids on Canon PIXMA and Epson EcoTank printers.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+              <div className="text-purple-400 font-mono text-xs font-bold uppercase">Standard CR80 ID</div>
+              <div className="text-base font-bold text-white">85.6 × 54.0 mm</div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Official dimensions for Aadhaar, PAN card, Driving Licence, Voter ID, and PVC smart cards.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+              <div className="text-cyan-400 font-mono text-xs font-bold uppercase">Govt Exam Photo</div>
+              <div className="text-base font-bold text-white">35 × 45 mm (3.5×4.5cm)</div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Standard dimension for UPSC, SSC, State PSC, NTA NEET/JEE, Railway &amp; Banking examination forms.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Matrix: Nexora vs Cloud Upload Tools */}
       <section className="w-full px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">
             <Cpu className="w-3.5 h-3.5" />
-            <span>Built For Performance</span>
+            <span>Architecture Superiority</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-heading font-black text-white tracking-tight">
-            Why Professionals Trust Nexora Tools
+            Why Nexora Tools Outperforms Cloud Converters
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            Engineered with modern web standards to outperform cloud-upload tools.
+            Compare local WebAssembly execution with traditional remote cloud websites.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="p-6 rounded-3xl bg-slate-900/70 border border-white/10 space-y-3 backdrop-blur-xl">
-            <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 w-fit">
-              <ShieldCheck className="w-6 h-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {/* Traditional Cloud Tools Card */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/40 border border-rose-500/20 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-rose-500/10">
+              <span className="font-bold text-rose-400 text-sm">Traditional Online Tools</span>
+              <span className="text-xs text-slate-500">Cloud-Based</span>
             </div>
-            <h3 className="text-base font-heading font-bold text-white">Zero Server Uploads</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Every crop, background removal, and PDF operation runs purely inside your browser memory. 100% confidential.
-            </p>
+            <ul className="space-y-3 text-xs text-slate-400">
+              <li className="flex items-start gap-2.5">
+                <span className="text-rose-400 font-bold">✕</span>
+                <span>Uploads your sensitive Aadhaar/PAN cards to unknown remote servers</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-rose-400 font-bold">✕</span>
+                <span>Slow upload and download times depending on internet speed</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-rose-400 font-bold">✕</span>
+                <span>Adds annoying watermarks unless you purchase expensive monthly plans</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-rose-400 font-bold">✕</span>
+                <span>Strict daily file limits or forced account registrations</span>
+              </li>
+            </ul>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900/70 border border-white/10 space-y-3 backdrop-blur-xl">
-            <div className="p-3 rounded-2xl bg-blue-500/20 text-blue-400 w-fit">
-              <PrinterCheck className="w-6 h-6" />
+          {/* Nexora Client-Side Card */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-indigo-950/40 via-slate-900/90 to-emerald-950/30 border border-emerald-500/30 space-y-4 shadow-xl shadow-emerald-950/20">
+            <div className="flex items-center justify-between pb-3 border-b border-emerald-500/20">
+              <span className="font-bold text-emerald-400 text-sm flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4" />
+                NexoraTools Workstation
+              </span>
+              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                100% In-Browser
+              </span>
             </div>
-            <h3 className="text-base font-heading font-bold text-white">300 DPI Studio Quality</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Precision raster and vector rendering ensures razor-sharp prints on Canon, Epson, HP, and Brother photo paper.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-slate-900/70 border border-white/10 space-y-3 backdrop-blur-xl">
-            <div className="p-3 rounded-2xl bg-purple-500/20 text-purple-400 w-fit">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-heading font-bold text-white">AI-Powered Features</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              AI background removal, 4-corner document perspective un-skewing, and signature ink cleaners run locally.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-slate-900/70 border border-white/10 space-y-3 backdrop-blur-xl">
-            <div className="p-3 rounded-2xl bg-pink-500/20 text-pink-400 w-fit">
-              <Zap className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-heading font-bold text-white">Batch Processing Power</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Process dozens of photos and documents simultaneously and package everything into an instant ZIP download.
-            </p>
+            <ul className="space-y-3 text-xs text-slate-300">
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>Zero Server Uploads:</strong> Processed 100% in your browser RAM</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>Instant Speed:</strong> Powered by WebAssembly and HTML5 Canvas</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>Clean Outputs:</strong> Zero watermarks, full 300 DPI studio resolution</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>100% Free Forever:</strong> No accounts, no paywalls, unlimited daily use</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
@@ -524,7 +672,7 @@ export const Home: React.FC = () => {
               <div>
                 <h4 className="text-base sm:text-lg font-heading font-bold text-white">Client-Side Guarantee</h4>
                 <p className="text-xs text-slate-400 mt-1 max-w-xs">
-                  Trusted by hundreds of Cyber Cafes and photo studios daily for high-speed, private document jobs.
+                  Trusted by thousands of Cyber Cafes and photo studios daily for high-speed, private document jobs.
                 </p>
               </div>
               <Link

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { PrivacyBadge } from './PrivacyBadge';
+import { usePageSEO } from '../../utils/seoHelper';
 
 interface ToolHeaderProps {
   title: string;
@@ -20,6 +21,15 @@ export const ToolHeader: React.FC<ToolHeaderProps> = ({
   badge,
   actions,
 }) => {
+  const location = useLocation();
+
+  // Automatically update dynamic SEO title, meta description and canonical link
+  usePageSEO({
+    title: `${title} - Free Online Tool`,
+    description,
+    canonicalPath: location.pathname,
+  });
+
   return (
     <div className="mb-6 sm:mb-8 space-y-2.5 sm:space-y-3">
       {/* Breadcrumb Bar */}

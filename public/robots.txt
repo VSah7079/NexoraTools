@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+
+# High priority bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# Disallow private admin/diagnostic routes
+Disallow: /admin
+
+# Sitemap link for automatic crawling
+Sitemap: https://nexoratools.com/sitemap.xml
