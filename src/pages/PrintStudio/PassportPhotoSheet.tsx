@@ -21,6 +21,14 @@ import {
   EyeOff,
   LayoutGrid,
   Download,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Maximize,
+  Smile,
+  ShieldCheck,
+  Move,
 } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
@@ -29,6 +37,13 @@ import { PAPER_SIZE_PRESETS, PASSPORT_SIZE_PRESETS, type SheetSettings } from '.
 import { calculateSheetLayout, renderSheetToCanvas, type LayoutGridResult } from '../../utils/printCalculations';
 import { BG_PRESET_COLORS, removeBackgroundAI } from '../../utils/bgRemovalEngine';
 import { loadImage, mmToPixels } from '../../utils/canvasUtils';
+import {
+  detectFaceAndHead,
+  calculatePassportFraming,
+  getTopSafeFraming,
+  getFullFitFraming,
+  type DetectedFace,
+} from '../../utils/faceDetectionUtils';
 import { PDFDocument } from 'pdf-lib';
 import { downloadBlob, printCanvas } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
@@ -38,6 +53,8 @@ export const PassportPhotoSheet: React.FC = () => {
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   const [segmentedCanvas, setSegmentedCanvas] = useState<HTMLCanvasElement | null>(null);
   const [isProcessingBg, setIsProcessingBg] = useState<boolean>(false);
+  const [isDetectingFace, setIsDetectingFace] = useState<boolean>(false);
+  const detectedFaceRef = useRef<DetectedFace | null>(null);
 
   // Active studio view mode: 'sheet' = full print sheet grid, 'photo' = single photo framing
   const [studioView, setStudioView] = useState<'sheet' | 'photo'>('sheet');
@@ -100,6 +117,48 @@ export const PassportPhotoSheet: React.FC = () => {
   const sheetCanvasRef = useRef<HTMLCanvasElement>(null);
   const singlePhotoCanvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Read sessionStorage if navigated from PassportPhotoMaker
+  useEffect(() => {
+    const storedPhoto = sessionStorage.getItem('nexora_print_sheet_photo');
+    const storedW = sessionStorage.getItem('nexora_print_photo_w');
+    const storedH = sessionStorage.getItem('nexora_print_photo_h');
+
+    if (storedPhoto) {
+      loadImage(storedPhoto).then(async (img) => {
+        setOriginalImage(img);
+        const w = storedW ? parseFloat(storedW) : 35;
+        const h = storedH ? parseFloat(storedH) : 45;
+
+        // Find matching preset
+        const matching = PASSPORT_SIZE_PRESETS.find((p) => p.widthMm === w && p.heightMm === h);
+        if (matching) {
+          setSelectedPhotoPreset(matching.id);
+        }
+
+        setSettings((s) => {
+          const next = { ...s, photoWidthMm: w, photoHeightMm: h };
+          const layout = calculateSheetLayout(next, 300);
+          return {
+            ...next,
+            copiesCount: s.autoFit ? layout.totalFitCount : Math.min(s.copiesCount, layout.totalFitCount),
+          };
+        });
+
+        // Compute framing
+        const widthPx = mmToPixels(w, 300);
+        const heightPx = mmToPixels(h, 300);
+        const detected = await detectFaceAndHead(img);
+        detectedFaceRef.current = detected;
+        const framing = calculatePassportFraming(img.width, img.height, widthPx, heightPx, detected);
+        setZoom(framing.zoom);
+        setPanX(framing.panX);
+        setPanY(framing.panY);
+      }).catch((err) => {
+        console.error('Failed to load photo from session storage:', err);
+      });
+    }
+  }, []);
+
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -140,6 +199,22 @@ export const PassportPhotoSheet: React.FC = () => {
           copiesCount: s.autoFit ? nextLayout.totalFitCount : Math.min(s.copiesCount, nextLayout.totalFitCount),
         };
       });
+
+      // Recalculate framing for new aspect ratio
+      if (originalImage) {
+        const widthPx = mmToPixels(found.widthMm, 300);
+        const heightPx = mmToPixels(found.heightMm, 300);
+        const framing = calculatePassportFraming(
+          originalImage.width,
+          originalImage.height,
+          widthPx,
+          heightPx,
+          detectedFaceRef.current
+        );
+        setZoom(framing.zoom);
+        setPanX(framing.panX);
+        setPanY(framing.panY);
+      }
     }
   };
 
@@ -167,13 +242,31 @@ export const PassportPhotoSheet: React.FC = () => {
     const img = await loadImage(target);
     setOriginalImage(img);
     setSegmentedCanvas(null);
-    setZoom(1);
-    setPanX(0);
-    setPanY(0);
     setRotation(0);
     setBrightness(0);
     setContrast(0);
     setSaturation(0);
+
+    const widthPx = mmToPixels(settings.photoWidthMm, 300);
+    const heightPx = mmToPixels(settings.photoHeightMm, 300);
+
+    // Auto detect face & set intelligent anti-cutoff framing
+    setIsDetectingFace(true);
+    try {
+      const detected = await detectFaceAndHead(img);
+      detectedFaceRef.current = detected;
+      const framing = calculatePassportFraming(img.width, img.height, widthPx, heightPx, detected);
+      setZoom(framing.zoom);
+      setPanX(framing.panX);
+      setPanY(framing.panY);
+    } catch {
+      const framing = getTopSafeFraming(img.width, img.height, widthPx, heightPx, 1.0);
+      setZoom(framing.zoom);
+      setPanX(framing.panX);
+      setPanY(framing.panY);
+    } finally {
+      setIsDetectingFace(false);
+    }
   };
 
   // Handle AI Background Extraction
@@ -299,19 +392,99 @@ export const PassportPhotoSheet: React.FC = () => {
 
   // Mouse Drag / Pan for Single Photo Framing
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (studioView !== 'photo') return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || studioView !== 'photo') return;
+    if (!isDragging) return;
     setPanX(e.clientX - dragStart.x);
     setPanY(e.clientY - dragStart.y);
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.touches[0].clientX - panX,
+        y: e.touches[0].clientY - panY,
+      });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    setPanX(e.touches[0].clientX - dragStart.x);
+    setPanY(e.touches[0].clientY - dragStart.y);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Wheel zoom on preview
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.05 : -0.05;
+    setZoom((z) => Math.max(0.2, Math.min(4.0, +(z + delta).toFixed(2))));
+  };
+
+  // Preset Anti-Cutoff Framing Handlers
+  const handleAutoFaceFit = async () => {
+    if (!originalImage) return;
+    const widthPx = mmToPixels(settings.photoWidthMm, 300);
+    const heightPx = mmToPixels(settings.photoHeightMm, 300);
+
+    if (!detectedFaceRef.current) {
+      setIsDetectingFace(true);
+      detectedFaceRef.current = await detectFaceAndHead(originalImage);
+      setIsDetectingFace(false);
+    }
+
+    const framing = calculatePassportFraming(
+      originalImage.width,
+      originalImage.height,
+      widthPx,
+      heightPx,
+      detectedFaceRef.current
+    );
+    setZoom(framing.zoom);
+    setPanX(framing.panX);
+    setPanY(framing.panY);
+  };
+
+  const handleAlignTopHead = () => {
+    if (!originalImage) return;
+    const widthPx = mmToPixels(settings.photoWidthMm, 300);
+    const heightPx = mmToPixels(settings.photoHeightMm, 300);
+    const framing = getTopSafeFraming(originalImage.width, originalImage.height, widthPx, heightPx, zoom);
+    setPanX(framing.panX);
+    setPanY(framing.panY);
+  };
+
+  const handleFitFull = () => {
+    if (!originalImage) return;
+    const widthPx = mmToPixels(settings.photoWidthMm, 300);
+    const heightPx = mmToPixels(settings.photoHeightMm, 300);
+    const framing = getFullFitFraming(originalImage.width, originalImage.height, widthPx, heightPx);
+    setZoom(framing.zoom);
+    setPanX(framing.panX);
+    setPanY(framing.panY);
+  };
+
+  const handleCenter = () => {
+    setPanX(0);
+    setPanY(0);
+  };
+
+  const nudge = (dx: number, dy: number) => {
+    setPanX((px) => px + dx);
+    setPanY((py) => py + dy);
   };
 
   // Adjust copies count safely
@@ -409,10 +582,10 @@ export const PassportPhotoSheet: React.FC = () => {
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
       <ToolHeader
         title="Passport Photo Studio & Print Sheet Generator"
-        description="All-in-one studio: Crop, rotate, AI background color changer, lighting retouch, and auto-arranged 300 DPI print sheets."
+        description="All-in-one studio: Automatic AI face detection, anti-cutoff head positioning, AI background replacer, lighting retouch, and auto-arranged 300 DPI print sheets."
         categoryName="Print Studio"
         categoryPath="/print/passport-sheet"
-        badge="All-In-One Studio"
+        badge="Anti-Cutoff AI Studio"
       />
 
       {!originalImage ? (
@@ -420,7 +593,7 @@ export const PassportPhotoSheet: React.FC = () => {
           <UploadZone
             onFileSelect={handleFileSelect}
             title="Upload Portrait Photo to Edit & Print"
-            subtitle="JPG, PNG, or WebP. Interactive crop, AI background replacer, lighting enhance & print sheet included."
+            subtitle="JPG, PNG, or WebP. Automatic face alignment (no head cutoffs), AI background replacer, lighting enhance & print sheet included."
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
@@ -433,8 +606,8 @@ export const PassportPhotoSheet: React.FC = () => {
               <span className="text-xs text-slate-400">Fits 30 passport photos across 5 columns</span>
             </div>
             <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 backdrop-blur-sm shadow-lg hover:border-indigo-500/30 transition-all">
-              <span className="text-xl font-bold text-indigo-400 block mb-1">AI Background & Crop</span>
-              <span className="text-xs text-slate-400">Change background to white/blue, enhance & print</span>
+              <span className="text-xl font-bold text-indigo-400 block mb-1">Anti-Cutoff AI</span>
+              <span className="text-xs text-slate-400">Auto-aligns head with 10% safe headroom</span>
             </div>
           </div>
         </div>
@@ -463,7 +636,10 @@ export const PassportPhotoSheet: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => setStudioView('photo')}
+                    onClick={() => {
+                      setStudioView('photo');
+                      setActiveTab('edit');
+                    }}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
                       studioView === 'photo'
                         ? 'bg-indigo-600 text-white shadow-sm'
@@ -525,6 +701,7 @@ export const PassportPhotoSheet: React.FC = () => {
                     onClick={() => {
                       setOriginalImage(null);
                       setSegmentedCanvas(null);
+                      sessionStorage.removeItem('nexora_print_sheet_photo');
                     }}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-[11px] font-semibold transition-all cursor-pointer"
                   >
@@ -541,7 +718,18 @@ export const PassportPhotoSheet: React.FC = () => {
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onWheel={handleWheel}
               >
+                {isDetectingFace && (
+                  <div className="absolute top-4 left-4 z-20 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 backdrop-blur-sm">
+                    <Smile className="w-3.5 h-3.5 animate-pulse" />
+                    <span>Detecting Face &amp; Aligning Head...</span>
+                  </div>
+                )}
+
                 {/* 1. Full Print Sheet Canvas */}
                 <div
                   className={`p-3 bg-white rounded-lg shadow-2xl max-w-full flex items-center justify-center transition-all ${
@@ -574,41 +762,173 @@ export const PassportPhotoSheet: React.FC = () => {
                     >
                       <ellipse
                         cx="50"
-                        cy="46"
+                        cy="43"
                         rx="28"
-                        ry="35"
+                        ry="34"
                         fill="none"
-                        stroke="rgba(34, 197, 94, 0.7)"
-                        strokeWidth="1.2"
-                        strokeDasharray="3 3"
+                        stroke="rgba(56, 189, 248, 0.85)"
+                        strokeWidth="1.5"
+                        strokeDasharray="4 3"
                       />
                       {/* Eyes Line */}
                       <line
-                        x1="26"
-                        y1="42"
-                        x2="74"
-                        y2="42"
-                        stroke="rgba(56, 189, 248, 0.6)"
-                        strokeWidth="1"
-                        strokeDasharray="2 2"
+                        x1="20"
+                        y1="46"
+                        x2="80"
+                        y2="46"
+                        stroke="rgba(251, 191, 36, 0.8)"
+                        strokeWidth="1.2"
+                        strokeDasharray="3 3"
                       />
                       {/* Chin Line */}
                       <line
-                        x1="36"
-                        y1="78"
-                        x2="64"
-                        y2="78"
-                        stroke="rgba(244, 63, 94, 0.6)"
-                        strokeWidth="1"
-                        strokeDasharray="2 2"
+                        x1="34"
+                        y1="77"
+                        x2="66"
+                        y2="77"
+                        stroke="rgba(52, 211, 153, 0.9)"
+                        strokeWidth="1.5"
                       />
                     </svg>
                   )}
                 </div>
               </div>
 
+              {/* Smart Anti-Cutoff Framing Presets Toolbar */}
+              <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    Anti-Cutoff Framing Presets
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-medium">Head Safe (10% Headroom)</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAutoFaceFit}
+                    className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600/30 to-purple-600/30 hover:from-indigo-600/50 hover:to-purple-600/50 border border-indigo-500/40 text-indigo-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    title="Auto-detect face and position head with 10% safe headroom"
+                  >
+                    <Smile className="w-3.5 h-3.5 text-indigo-300" />
+                    <span>Auto Face Fit</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleAlignTopHead}
+                    className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-700"
+                    title="Align photo top to guarantee head/hair is never cut off"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Fit Head (Top)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleFitFull}
+                    className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-700"
+                    title="Fit whole photo inside passport frame"
+                  >
+                    <Maximize className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Fit Full Photo</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCenter}
+                    className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-700"
+                    title="Center photo"
+                  >
+                    <Move className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Center</span>
+                  </button>
+                </div>
+
+                {/* Nudges & Zoom Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-xs">
+                  {/* Zoom controls */}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setZoom((z) => Math.max(0.2, +(z - 0.1).toFixed(2)))}
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
+                      title="Zoom Out"
+                    >
+                      <ZoomOut className="w-3.5 h-3.5" />
+                    </button>
+                    <input
+                      type="range"
+                      min="0.2"
+                      max="4.0"
+                      step="0.05"
+                      value={zoom}
+                      onChange={(e) => setZoom(parseFloat(e.target.value))}
+                      className="w-16 sm:w-24 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+                    />
+                    <span className="font-mono text-slate-300 text-[11px] w-10 text-center">
+                      {Math.round(zoom * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setZoom((z) => Math.min(4.0, +(z + 0.1).toFixed(2)))}
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
+                      title="Zoom In"
+                    >
+                      <ZoomIn className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Directional Nudges */}
+                  <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => nudge(-15, 0)}
+                      className="p-1 rounded-lg hover:bg-slate-800 text-slate-300 cursor-pointer"
+                      title="Nudge Left"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => nudge(0, -15)}
+                      className="p-1 rounded-lg hover:bg-slate-800 text-slate-300 cursor-pointer"
+                      title="Nudge Up"
+                    >
+                      <ArrowUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => nudge(0, 15)}
+                      className="p-1 rounded-lg hover:bg-slate-800 text-slate-300 cursor-pointer"
+                      title="Nudge Down"
+                    >
+                      <ArrowDown className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => nudge(15, 0)}
+                      className="p-1 rounded-lg hover:bg-slate-800 text-slate-300 cursor-pointer"
+                      title="Nudge Right"
+                    >
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Reset button */}
+                  <button
+                    type="button"
+                    onClick={handleResetFraming}
+                    className="text-[11px] text-slate-400 hover:text-white underline cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
               {/* Bottom Sheet Status & Drag hint */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs text-slate-400">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-slate-400">
                 {studioView === 'sheet' ? (
                   <>
                     <div className="flex items-center gap-1.5">
@@ -630,16 +950,10 @@ export const PassportPhotoSheet: React.FC = () => {
                   </>
                 ) : (
                   <div className="w-full flex items-center justify-between">
-                    <span className="text-indigo-300 text-[11px]">
-                      💡 Tip: Click and drag image inside the box to reposition face.
+                    <span className="text-indigo-300 text-[11px] flex items-center gap-1">
+                      <Move className="w-3 h-3 text-indigo-400" />
+                      Drag canvas or use arrow buttons to frame head inside oval guide.
                     </span>
-                    <button
-                      type="button"
-                      onClick={handleResetFraming}
-                      className="text-slate-400 hover:text-white underline text-[11px]"
-                    >
-                      Reset Framing
-                    </button>
                   </div>
                 )}
               </div>
@@ -805,43 +1119,9 @@ export const PassportPhotoSheet: React.FC = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Custom Inputs */}
-                  {selectedPhotoPreset === 'custom' && (
-                    <div className="pt-2 grid grid-cols-2 gap-3 border-t border-slate-800 animate-in fade-in duration-200">
-                      <div>
-                        <label className="text-slate-400 block mb-1">Width (mm)</label>
-                        <input
-                          type="number"
-                          value={settings.photoWidthMm}
-                          onChange={(e) =>
-                            setSettings((s) => ({
-                              ...s,
-                              photoWidthMm: Math.max(10, parseFloat(e.target.value) || 35),
-                            }))
-                          }
-                          className="w-full px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono focus:border-indigo-500 focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-slate-400 block mb-1">Height (mm)</label>
-                        <input
-                          type="number"
-                          value={settings.photoHeightMm}
-                          onChange={(e) =>
-                            setSettings((s) => ({
-                              ...s,
-                              photoHeightMm: Math.max(10, parseFloat(e.target.value) || 45),
-                            }))
-                          }
-                          className="w-full px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono focus:border-indigo-500 focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* 2. Paper Size & Orientation Dropdown */}
+                {/* 2. Paper Size Selector */}
                 <div
                   className={`p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-3 text-xs backdrop-blur-xl transition-all ${
                     isPaperDropdownOpen
@@ -853,14 +1133,13 @@ export const PassportPhotoSheet: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                      2. Select Paper Size
+                      2. Print Sheet Paper Size
                     </h3>
                     <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                      {activePaperPreset.widthMm} × {activePaperPreset.heightMm} mm
+                      {activePaperPreset.name.split('(')[0]}
                     </span>
                   </div>
 
-                  {/* Dropdown Trigger */}
                   <div className="relative">
                     <button
                       type="button"
@@ -871,16 +1150,9 @@ export const PassportPhotoSheet: React.FC = () => {
                       className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-700/80 hover:border-emerald-500/60 text-left transition-all cursor-pointer flex items-center justify-between shadow-inner group"
                     >
                       <div className="space-y-0.5 pr-2 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-xs sm:text-sm text-white block truncate group-hover:text-emerald-300 transition-colors">
-                            {activePaperPreset.name}
-                          </span>
-                          {activePaperPreset.popularForStudio && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/30 uppercase shrink-0">
-                              Studio Fav
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-semibold text-xs sm:text-sm text-white block truncate group-hover:text-emerald-300 transition-colors">
+                          {activePaperPreset.name}
+                        </span>
                         <span className="text-[11px] text-slate-400 block truncate">
                           {activePaperPreset.description}
                         </span>
@@ -888,7 +1160,6 @@ export const PassportPhotoSheet: React.FC = () => {
                       <ChevronDown className={`w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-transform duration-200 shrink-0 ${isPaperDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
 
-                    {/* Options List */}
                     {isPaperDropdownOpen && (
                       <div className="absolute top-full left-0 right-0 mt-1.5 p-1.5 rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl shadow-black/90 z-50 space-y-1 max-h-64 overflow-y-auto backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150">
                         {PAPER_SIZE_PRESETS.map((paper) => (
@@ -903,14 +1174,7 @@ export const PassportPhotoSheet: React.FC = () => {
                             }`}
                           >
                             <div className="space-y-0.5 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-xs text-white block">{paper.name}</span>
-                                {paper.popularForStudio && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                    Studio
-                                  </span>
-                                )}
-                              </div>
+                              <span className="font-semibold text-xs text-white block">{paper.name}</span>
                               <span className="text-[10.5px] text-slate-400 block leading-tight">
                                 {paper.description}
                               </span>
@@ -923,252 +1187,100 @@ export const PassportPhotoSheet: React.FC = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Orientation Switcher */}
-                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/60">
-                    <span className="text-slate-400 font-medium">Paper Orientation:</span>
-                    <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSettings((s) => {
-                            const nextSettings = {
-                              ...s,
-                              orientation: 'portrait' as const,
-                              columns: 0,
-                              rows: 0,
-                            };
-                            const nextLayout = calculateSheetLayout(nextSettings, 300);
-                            return {
-                              ...nextSettings,
-                              copiesCount: s.autoFit ? nextLayout.totalFitCount : Math.min(s.copiesCount, nextLayout.totalFitCount),
-                            };
-                          })
-                        }
-                        className={`px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                          settings.orientation === 'portrait'
-                            ? 'bg-emerald-600 text-white shadow-sm'
-                            : 'text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        Portrait ↕
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSettings((s) => {
-                            const nextSettings = {
-                              ...s,
-                              orientation: 'landscape' as const,
-                              columns: 0,
-                              rows: 0,
-                            };
-                            const nextLayout = calculateSheetLayout(nextSettings, 300);
-                            return {
-                              ...nextSettings,
-                              copiesCount: s.autoFit ? nextLayout.totalFitCount : Math.min(s.copiesCount, nextLayout.totalFitCount),
-                            };
-                          })
-                        }
-                        className={`px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                          settings.orientation === 'landscape'
-                            ? 'bg-emerald-600 text-white shadow-sm'
-                            : 'text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        Landscape ↔
-                      </button>
-                    </div>
-                  </div>
                 </div>
 
-                {/* 3. Number of Photo Copies & Smart Auto-Fill */}
+                {/* 3. Number of Copies & Auto Fill */}
                 <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-3.5 text-xs backdrop-blur-xl">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                      3. Number of Photo Copies
+                      <Printer className="w-3.5 h-3.5 text-indigo-400" />
+                      3. Number of Copies
                     </h3>
-                    <span className="text-[11px] font-mono text-cyan-400 font-bold">
-                      Max: {totalPossible} Photos ({currentLayout?.cols || 2} Per Row)
-                    </span>
-                  </div>
-
-                  {/* Auto-Fill Banner Button */}
-                  <button
-                    type="button"
-                    onClick={handleAutoFill}
-                    className={`w-full p-2.5 rounded-2xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm ${
-                      isFullyFilled
-                        ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
-                        : 'bg-slate-950 border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/40 hover:border-cyan-400'
-                    }`}
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>Auto-Fill Full Sheet ({totalPossible} Photos • {currentLayout?.rows || 1} Rows)</span>
-                    {isFullyFilled && <Check className="w-3.5 h-3.5" />}
-                  </button>
-
-                  {/* Stepper */}
-                  <div className="flex items-center gap-2 pt-1">
                     <button
                       type="button"
-                      onClick={() => adjustCopies(-1)}
-                      disabled={settings.copiesCount <= 1}
-                      className="w-10 h-10 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-white font-bold flex items-center justify-center transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      onClick={handleAutoFill}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        isFullyFilled
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
+                      }`}
                     >
-                      <Minus className="w-4 h-4" />
+                      {isFullyFilled ? '✓ Sheet Full' : `Auto Fill Full (${totalPossible})`}
                     </button>
+                  </div>
 
-                    <div className="flex-1 py-2 px-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
-                      <span className="text-base font-extrabold text-white font-mono">{settings.copiesCount}</span>
-                      <span className="text-[10px] text-slate-400 block">photos on sheet</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 flex-1 justify-between">
+                      <button
+                        type="button"
+                        onClick={() => adjustCopies(-1)}
+                        disabled={settings.copiesCount <= 1}
+                        className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 cursor-pointer"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="font-mono font-bold text-base text-white">
+                        {settings.copiesCount} <span className="text-xs font-normal text-slate-400">Photos</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => adjustCopies(1)}
+                        disabled={settings.copiesCount >= totalPossible}
+                        className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => adjustCopies(1)}
-                      disabled={settings.copiesCount >= totalPossible}
-                      className="w-10 h-10 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-white font-bold flex items-center justify-center transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[2, 4, 6, 8, 12, 16, 30].map((num) => {
+                        if (num > totalPossible) return null;
+                        return (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setSettings((s) => ({ ...s, copiesCount: num, autoFit: false }))}
+                            className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                              settings.copiesCount === num
+                                ? 'bg-indigo-600 border-indigo-500 text-white'
+                                : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {num}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-
-                  {/* Smart Line-Based Quick Pickers */}
-                  {(() => {
-                    const cols = currentLayout?.cols || 2;
-                    const max = totalPossible;
-                    const rowCounts = [
-                      cols * 1,
-                      cols * 2,
-                      cols * 3,
-                      cols * 4,
-                      cols * 5,
-                      max,
-                    ].filter((v, idx, arr) => v > 0 && v <= max && arr.indexOf(v) === idx);
-
-                    return (
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 pt-1">
-                        {rowCounts.map((count) => {
-                          const lineCount = Math.floor(count / cols);
-                          const isFull = count === max;
-                          const label = isFull ? `${count} (Full)` : `${count} (${lineCount} ${lineCount === 1 ? 'Line' : 'Lines'})`;
-                          return (
-                            <button
-                              key={count}
-                              type="button"
-                              onClick={() => setSettings((s) => ({ ...s, copiesCount: count, autoFit: isFull }))}
-                              className={`py-1.5 px-2 rounded-xl font-bold text-[11px] border transition-all cursor-pointer truncate ${
-                                settings.copiesCount === count
-                                  ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-sm'
-                                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-                              }`}
-                              title={`${count} photos`}
-                            >
-                              {label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
                 </div>
 
-                {/* 4. Cutting Lines & Studio Border Settings */}
-                <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4 text-xs backdrop-blur-xl">
+                {/* 4. Cut Lines & Border Options */}
+                <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-3.5 text-xs backdrop-blur-xl">
                   <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Scissors className="w-3.5 h-3.5 text-indigo-400" />
-                    4. Cutting Lines &amp; Studio Spacing
+                    <Scissors className="w-3.5 h-3.5 text-cyan-400" />
+                    4. Guidelines &amp; Borders
                   </h3>
 
-                  {/* Scissor Marker Types */}
-                  <div>
-                    <label className="text-slate-400 block mb-1.5 font-medium">Scissor Cut Markers</label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {(['solid', 'dashed', 'cross-marks'] as const).map((style) => (
-                        <button
-                          key={style}
-                          type="button"
-                          onClick={() => setSettings((s) => ({ ...s, showCutLines: true, cutLineStyle: style }))}
-                          className={`py-2 rounded-xl capitalize border text-xs font-semibold transition-all cursor-pointer ${
-                            settings.showCutLines && settings.cutLineStyle === style
-                              ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-sm'
-                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                          }`}
-                        >
-                          {style.replace('-', ' ')}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Photo Edge Border */}
-                  <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between">
-                    <span className="text-slate-400 font-medium">Photo Cutting Border:</span>
-                    <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                      <button
-                        type="button"
-                        onClick={() => setSettings((s) => ({ ...s, showPhotoBorder: true, photoBorderColor: '#cbd5e1' }))}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          settings.showPhotoBorder && settings.photoBorderColor === '#cbd5e1'
-                            ? 'bg-slate-700 text-white'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        Light Gray
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSettings((s) => ({ ...s, showPhotoBorder: true, photoBorderColor: '#000000' }))}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          settings.showPhotoBorder && settings.photoBorderColor === '#000000'
-                            ? 'bg-slate-700 text-white'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        Black
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSettings((s) => ({ ...s, showPhotoBorder: false }))}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          !settings.showPhotoBorder
-                            ? 'bg-slate-700 text-white'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        None
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Spacing Inputs */}
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800/60">
-                    <div>
-                      <label className="text-slate-400 block mb-1">Gap Spacing (mm)</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-slate-700">
                       <input
-                        type="number"
-                        value={settings.gapX}
-                        onChange={(e) => {
-                          const val = Math.max(0, parseFloat(e.target.value) || 0);
-                          setSettings((s) => ({ ...s, gapX: val, gapY: val }));
-                        }}
-                        className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono focus:border-indigo-500 focus:outline-none text-xs"
+                        type="checkbox"
+                        checked={settings.showCutLines}
+                        onChange={(e) => setSettings((s) => ({ ...s, showCutLines: e.target.checked }))}
+                        className="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500"
                       />
-                    </div>
-                    <div>
-                      <label className="text-slate-400 block mb-1">Sheet Margin (mm)</label>
+                      <span className="text-xs text-slate-300">Cutting Guides</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-slate-700">
                       <input
-                        type="number"
-                        value={settings.marginX}
-                        onChange={(e) => {
-                          const val = Math.max(0, parseFloat(e.target.value) || 0);
-                          setSettings((s) => ({ ...s, marginX: val, marginY: val }));
-                        }}
-                        className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono focus:border-indigo-500 focus:outline-none text-xs"
+                        type="checkbox"
+                        checked={settings.showPhotoBorder}
+                        onChange={(e) => setSettings((s) => ({ ...s, showPhotoBorder: e.target.checked }))}
+                        className="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500"
                       />
-                    </div>
+                      <span className="text-xs text-slate-300">Photo Border</span>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -1262,7 +1374,7 @@ export const PassportPhotoSheet: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Sliders className="w-3.5 h-3.5 text-cyan-400" />
-                      Framing &amp; Zoom
+                      Framing &amp; Positioning
                     </h3>
                     <button
                       type="button"
@@ -1284,14 +1396,49 @@ export const PassportPhotoSheet: React.FC = () => {
                       <ZoomOut className="w-4 h-4 text-slate-500" />
                       <input
                         type="range"
-                        min="0.5"
-                        max="3.0"
+                        min="0.2"
+                        max="4.0"
                         step="0.05"
                         value={zoom}
                         onChange={(e) => setZoom(parseFloat(e.target.value))}
                         className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
                       />
                       <ZoomIn className="w-4 h-4 text-slate-500" />
+                    </div>
+                  </div>
+
+                  {/* Pan X and Pan Y Manual Sliders */}
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                        <span>Pan X (Horizontal):</span>
+                        <span className="font-mono text-slate-200">{panX}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="-600"
+                        max="600"
+                        step="5"
+                        value={panX}
+                        onChange={(e) => setPanX(parseInt(e.target.value))}
+                        className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                        <span>Pan Y (Vertical):</span>
+                        <span className="font-mono text-slate-200">{panY}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="-600"
+                        max="600"
+                        step="5"
+                        value={panY}
+                        onChange={(e) => setPanY(parseInt(e.target.value))}
+                        className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+                      />
                     </div>
                   </div>
                 </div>

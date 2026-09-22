@@ -18,6 +18,13 @@ import {
   Award,
   Calendar,
   User,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Maximize,
+  Smile,
+  ShieldCheck,
 } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
@@ -29,6 +36,13 @@ import {
   removeBackgroundAI,
 } from '../../utils/bgRemovalEngine';
 import { loadImage, mmToPixels } from '../../utils/canvasUtils';
+import {
+  detectFaceAndHead,
+  calculatePassportFraming,
+  getTopSafeFraming,
+  getFullFitFraming,
+  type DetectedFace,
+} from '../../utils/faceDetectionUtils';
 import { incrementStat } from '../../services/analyticsTracker';
 
 export const PassportPhotoMaker: React.FC = () => {
@@ -36,6 +50,8 @@ export const PassportPhotoMaker: React.FC = () => {
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   const [segmentedCanvas, setSegmentedCanvas] = useState<HTMLCanvasElement | null>(null);
   const [isProcessingBg, setIsProcessingBg] = useState<boolean>(false);
+  const [isDetectingFace, setIsDetectingFace] = useState<boolean>(false);
+  const detectedFaceRef = useRef<DetectedFace | null>(null);
 
   // Settings
   const [selectedPreset, setSelectedPreset] = useState<string>('in-passport');
@@ -101,10 +117,28 @@ export const PassportPhotoMaker: React.FC = () => {
     const target = Array.isArray(file) ? file[0] : file;
     const img = await loadImage(target);
     setOriginalImage(img);
-    setZoom(1);
-    setPanX(0);
-    setPanY(0);
     setRotation(0);
+
+    const widthPx = mmToPixels(currentWidthMm, 300);
+    const heightPx = mmToPixels(currentHeightMm, 300);
+
+    // Auto-detect face and compute anti-cutoff passport framing
+    setIsDetectingFace(true);
+    try {
+      const detected = await detectFaceAndHead(img);
+      detectedFaceRef.current = detected;
+      const framing = calculatePassportFraming(img.width, img.height, widthPx, heightPx, detected);
+      setZoom(framing.zoom);
+      setPanX(framing.panX);
+      setPanY(framing.panY);
+    } catch {
+      const framing = getTopSafeFraming(img.width, img.height, widthPx, heightPx, 1.0);
+      setZoom(framing.zoom);
+      setPanX(framing.panX);
+      setPanY(framing.panY);
+    } finally {
+      setIsDetectingFace(false);
+    }
 
     // Create source canvas for background removal
     const sCanvas = document.createElement('canvas');
@@ -256,6 +290,7 @@ export const PassportPhotoMaker: React.FC = () => {
     drawCanvas();
   }, [drawCanvas]);
 
+  // Mouse & Touch Dragging for Single Photo Framing
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
@@ -269,6 +304,87 @@ export const PassportPhotoMaker: React.FC = () => {
 
   const handleMouseUp = () => {
     setIsDragging(false);
+  };
+
+  // Touch handlers for mobile devices
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.touches[0].clientX - panX,
+        y: e.touches[0].clientY - panY,
+      });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    setPanX(e.touches[0].clientX - dragStart.x);
+    setPanY(e.touches[0].clientY - dragStart.y);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Wheel Zoom on Canvas
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY < 0 ? 0.05 : -0.05;
+    setZoom((z) => Math.max(0.2, Math.min(4.0, +(z + zoomFactor).toFixed(2))));
+  };
+
+  // Preset Anti-Cutoff Framing Handlers
+  const handleAutoFaceFit = async () => {
+    if (!originalImage) return;
+    const widthPx = mmToPixels(currentWidthMm, 300);
+    const heightPx = mmToPixels(currentHeightMm, 300);
+
+    if (!detectedFaceRef.current) {
+      setIsDetectingFace(true);
+      detectedFaceRef.current = await detectFaceAndHead(originalImage);
+      setIsDetectingFace(false);
+    }
+
+    const framing = calculatePassportFraming(
+      originalImage.width,
+      originalImage.height,
+      widthPx,
+      heightPx,
+      detectedFaceRef.current
+    );
+    setZoom(framing.zoom);
+    setPanX(framing.panX);
+    setPanY(framing.panY);
+  };
+
+  const handleAlignTopHead = () => {
+    if (!originalImage) return;
+    const widthPx = mmToPixels(currentWidthMm, 300);
+    const heightPx = mmToPixels(currentHeightMm, 300);
+    const framing = getTopSafeFraming(originalImage.width, originalImage.height, widthPx, heightPx, zoom);
+    setPanX(framing.panX);
+    setPanY(framing.panY);
+  };
+
+  const handleFitFull = () => {
+    if (!originalImage) return;
+    const widthPx = mmToPixels(currentWidthMm, 300);
+    const heightPx = mmToPixels(currentHeightMm, 300);
+    const framing = getFullFitFraming(originalImage.width, originalImage.height, widthPx, heightPx);
+    setZoom(framing.zoom);
+    setPanX(framing.panX);
+    setPanY(framing.panY);
+  };
+
+  const handleCenter = () => {
+    setPanX(0);
+    setPanY(0);
+  };
+
+  const nudge = (dx: number, dy: number) => {
+    setPanX((px) => px + dx);
+    setPanY((py) => py + dy);
   };
 
   const handleSendToPrintSheet = () => {
@@ -290,10 +406,10 @@ export const PassportPhotoMaker: React.FC = () => {
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
         title="Passport Photo Maker"
-        description="Create official passport and visa photos with automatic AI background removal, studio backdrop replacer, and ICAO biometric guides."
+        description="Create official passport and visa photos with automatic AI face detection, anti-cutoff head positioning, studio backdrop replacer, and ICAO biometric guides."
         categoryName="Photo Tools"
         categoryPath="/photo/passport"
-        badge="AI Background Remover"
+        badge="AI Biometric Framing"
       />
 
       {!originalImage ? (
@@ -301,7 +417,7 @@ export const PassportPhotoMaker: React.FC = () => {
           <UploadZone
             onFileSelect={handleFileSelect}
             title="Upload Portrait Photo for Passport"
-            subtitle="JPG, PNG, or WebP. Automatic background removal & passport color replacer included."
+            subtitle="JPG, PNG, or WebP. Automatic face detection, anti-cutoff head positioning & backdrop replacer included."
           />
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -314,8 +430,8 @@ export const PassportPhotoMaker: React.FC = () => {
               <span className="text-xs text-slate-400">US Visa, OCI Card, PAN Photo</span>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-              <span className="text-xl font-bold text-emerald-400 block mb-1">AI Background</span>
-              <span className="text-xs text-slate-400">Auto removes &amp; replaces with white/blue</span>
+              <span className="text-xl font-bold text-emerald-400 block mb-1">Anti-Cutoff AI</span>
+              <span className="text-xs text-slate-400">Auto-aligns head with 10% safe headroom</span>
             </div>
           </div>
         </div>
@@ -333,13 +449,24 @@ export const PassportPhotoMaker: React.FC = () => {
                 </div>
               )}
 
+              {isDetectingFace && (
+                <div className="absolute top-4 left-4 z-20 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 backdrop-blur-sm">
+                  <Smile className="w-3.5 h-3.5 animate-pulse" />
+                  <span>Detecting Face &amp; Aligning Head...</span>
+                </div>
+              )}
+
               <div
                 ref={containerRef}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
-                className="relative cursor-move overflow-hidden border-2 border-indigo-500/40 rounded-lg shadow-2xl bg-slate-950 flex items-center justify-center max-w-full"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onWheel={handleWheel}
+                className="relative cursor-move overflow-hidden border-2 border-indigo-500/40 rounded-lg shadow-2xl bg-slate-950 flex items-center justify-center max-w-full select-none"
                 style={{
                   maxHeight: '440px',
                   aspectRatio: `${currentWidthMm} / ${currentHeightMm}`,
@@ -362,63 +489,169 @@ export const PassportPhotoMaker: React.FC = () => {
 
               <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
                 <Move className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Click &amp; drag inside canvas to position face inside guide</span>
+                <span>Drag to reposition | Scroll wheel to zoom | Head is safe inside guideline</span>
               </div>
             </div>
 
-            {/* Quick Canvas Adjust Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.1).toFixed(2)))}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
-                  title="Zoom Out"
-                >
-                  <ZoomOut className="w-4 h-4" />
-                </button>
-                <span className="font-mono text-slate-300 w-12 text-center">
-                  {Math.round(zoom * 100)}%
+            {/* Smart Framing Quick Presets Toolbar */}
+            <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  Smart Anti-Cutoff Framing Presets
                 </span>
+                <span className="text-[11px] text-emerald-400 font-medium">10% Safe Headroom</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
-                  onClick={() => setZoom((z) => Math.min(3.0, +(z + 0.1).toFixed(2)))}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
-                  title="Zoom In"
+                  type="button"
+                  onClick={handleAutoFaceFit}
+                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600/30 to-purple-600/30 hover:from-indigo-600/50 hover:to-purple-600/50 border border-indigo-500/40 text-indigo-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                  title="Auto-detect face and position head with 10% safe headroom"
                 >
-                  <ZoomIn className="w-4 h-4" />
+                  <Smile className="w-3.5 h-3.5 text-indigo-300" />
+                  <span>Auto Face Fit</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAlignTopHead}
+                  className="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  title="Align photo top to guarantee head/hair is never cut off"
+                >
+                  <ArrowUp className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Fit Head (Top)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleFitFull}
+                  className="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  title="Fit whole photo inside passport box"
+                >
+                  <Maximize className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Fit Full Photo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCenter}
+                  className="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  title="Center photo horizontally & vertically"
+                >
+                  <Move className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Center</span>
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setRotation((r) => (r + 90) % 360)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
-                >
-                  <RotateCw className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Rotate 90°</span>
-                </button>
+              {/* Nudge & Zoom Toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800 text-xs">
+                {/* Zoom Controls */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setZoom((z) => Math.max(0.2, +(z - 0.1).toFixed(2)))}
+                    className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <input
+                    type="range"
+                    min="0.2"
+                    max="4.0"
+                    step="0.05"
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    className="w-20 sm:w-28 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+                  />
+                  <span className="font-mono text-slate-300 w-12 text-center text-[11px]">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setZoom((z) => Math.min(4.0, +(z + 0.1).toFixed(2)))}
+                    className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
+                    title="Zoom In"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
-                <button
-                  onClick={() => setShowOvalGuide(!showOvalGuide)}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-colors cursor-pointer ${showOvalGuide
-                    ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                {/* Directional Nudges */}
+                <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => nudge(-15, 0)}
+                    className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 cursor-pointer"
+                    title="Nudge Left"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => nudge(0, -15)}
+                    className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 cursor-pointer"
+                    title="Nudge Up"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => nudge(0, 15)}
+                    className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 cursor-pointer"
+                    title="Nudge Down"
+                  >
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => nudge(15, 0)}
+                    className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 cursor-pointer"
+                    title="Nudge Right"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Rotate & Guide */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setRotation((r) => (r + 90) % 360)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer text-[11px]"
+                  >
+                    <RotateCw className="w-3 h-3 text-indigo-400" />
+                    <span>Rotate</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowOvalGuide(!showOvalGuide)}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-colors cursor-pointer text-[11px] ${
+                      showOvalGuide
+                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                        : 'bg-slate-800 text-slate-400 border-slate-700'
                     }`}
-                >
-                  {showOvalGuide ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                  <span>Biometric Guide</span>
-                </button>
-              </div>
+                  >
+                    {showOvalGuide ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    <span>Biometric Guide</span>
+                  </button>
 
-              <button
-                onClick={() => {
-                  setOriginalImage(null);
-                  setSegmentedCanvas(null);
-                }}
-                className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg ml-auto cursor-pointer"
-                title="Change Photo"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOriginalImage(null);
+                      setSegmentedCanvas(null);
+                    }}
+                    className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg cursor-pointer ml-1"
+                    title="Change Photo"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -458,10 +691,11 @@ export const PassportPhotoMaker: React.FC = () => {
 
                 <button
                   onClick={() => setAiBgRemoval(!aiBgRemoval)}
-                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${aiBgRemoval
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
-                    : 'bg-slate-800 text-slate-400 border border-slate-700'
-                    }`}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    aiBgRemoval
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
+                      : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  }`}
                 >
                   {aiBgRemoval ? '✓ Auto-Remove ON' : 'Original Photo'}
                 </button>
@@ -479,10 +713,11 @@ export const PassportPhotoMaker: React.FC = () => {
                         <button
                           key={color.id}
                           onClick={() => setBackgroundColor(color.id)}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all cursor-pointer ${backgroundColor === color.id
-                            ? 'bg-cyan-600/20 border-cyan-400 text-white shadow-xs'
-                            : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-800'
-                            }`}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                            backgroundColor === color.id
+                              ? 'bg-cyan-600/20 border-cyan-400 text-white shadow-xs'
+                              : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-800'
+                          }`}
                         >
                           <span
                             className="w-3.5 h-3.5 rounded-full border border-slate-600 shadow-inner shrink-0"
@@ -598,190 +833,160 @@ export const PassportPhotoMaker: React.FC = () => {
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Standard mm
+                    Standard
                   </button>
                 </div>
               </div>
 
               {activeTab === 'exam_visa' ? (
-                <div className="space-y-2">
-                  <p className="text-[11px] text-slate-400">
-                    1-Click compliant dimensions, background color &amp; name strip:
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
-                    {EXAM_VISA_PRESETS.map((preset) => (
-                      <button
-                        key={preset.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedPreset('custom');
-                          setCustomWidthMm(preset.widthMm);
-                          setCustomHeightMm(preset.heightMm);
-                          if (preset.requireNameDate) {
-                            setAddNameDateStrip(true);
-                          }
-                          if (preset.bgColorHex) {
-                            setBackgroundColor('custom');
-                            setCustomHex(preset.bgColorHex);
-                          }
-                        }}
-                        className="p-2.5 rounded-2xl bg-slate-950/80 hover:bg-indigo-950/40 border border-white/10 hover:border-indigo-500/50 text-left transition-all cursor-pointer group flex flex-col justify-between"
-                      >
-                        <div>
-                          <div className="font-bold text-xs text-slate-200 group-hover:text-indigo-300 truncate">
+                <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                  {EXAM_VISA_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedPreset('custom');
+                        setCustomWidthMm(preset.widthMm);
+                        setCustomHeightMm(preset.heightMm);
+                        if (preset.bgColorHex) {
+                          setCustomHex(preset.bgColorHex);
+                          setBackgroundColor(preset.bgColorHex === '#ffffff' ? 'white' : 'custom');
+                          setAiBgRemoval(true);
+                        }
+                        if (preset.requireNameDate) {
+                          setAddNameDateStrip(true);
+                        }
+                      }}
+                      className="p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-indigo-500/50 hover:bg-slate-800/50 text-left transition-all group flex flex-col justify-between cursor-pointer"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <span className="font-bold text-xs text-white group-hover:text-indigo-300 transition-colors truncate">
                             {preset.name}
-                          </div>
-                          <div className="text-[10px] text-slate-400 truncate mt-0.5">
-                            {preset.widthMm}×{preset.heightMm} mm • {preset.minKb}-{preset.maxKb}KB
-                          </div>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-indigo-500/20 text-indigo-300 font-mono">
-                            {preset.category === 'govt_exam' ? 'Govt Exam' : 'Visa'}
                           </span>
-                          {preset.requireNameDate && (
-                            <span className="text-[9px] text-amber-400 font-medium">+Name/Date</span>
-                          )}
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
+                            {preset.widthMm}×{preset.heightMm}mm
+                          </span>
                         </div>
-                      </button>
-                    ))}
-                  </div>
+                        <p className="text-[10px] text-slate-400 line-clamp-2 leading-tight">
+                          {preset.notes}
+                        </p>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1.5 text-[9px] text-slate-500">
+                        <span className="capitalize">{preset.bgRequirement || 'White'}</span>
+                        {preset.requireNameDate && (
+                          <span className="text-amber-400">· Name/Date Req.</span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
               ) : (
-                /* Standard mm Presets */
-                <div
-                  className="space-y-3"
-                  ref={presetDropdownRef}
-                >
-                  {/* Dropdown Button */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setIsPresetDropdownOpen((prev) => !prev)}
-                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-700/80 hover:border-indigo-500/60 text-left transition-all cursor-pointer flex items-center justify-between shadow-inner group"
-                    >
-                      <div className="space-y-0.5 pr-2 min-w-0">
-                        <span className="font-semibold text-xs sm:text-sm text-white block truncate group-hover:text-indigo-300 transition-colors">
-                          {activePreset.name}
-                        </span>
-                        <span className="text-[11px] text-slate-400 block truncate">
-                          {activePreset.description}
-                        </span>
-                      </div>
-                      <ChevronDown className={`w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-transform duration-200 shrink-0 ${isPresetDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
+                <div className="relative" ref={presetDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsPresetDropdownOpen(!isPresetDropdownOpen)}
+                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-700/80 hover:border-indigo-500/60 text-left transition-all cursor-pointer flex items-center justify-between shadow-inner group"
+                  >
+                    <div className="space-y-0.5 pr-2 min-w-0">
+                      <span className="font-semibold text-xs sm:text-sm text-white block truncate group-hover:text-indigo-300 transition-colors">
+                        {activePreset.name}
+                      </span>
+                      <span className="text-[11px] text-slate-400 block truncate">
+                        {activePreset.description}
+                      </span>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-transform duration-200 shrink-0 ${
+                        isPresetDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                    {/* Dropdown Options List */}
-                    {isPresetDropdownOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1.5 p-1.5 rounded-2xl bg-slate-900 border border-indigo-500/40 shadow-2xl shadow-black/90 z-50 space-y-1 max-h-64 overflow-y-auto backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150">
-                        {PASSPORT_SIZE_PRESETS.map((preset) => (
-                          <button
-                            key={preset.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedPreset(preset.id);
-                              setIsPresetDropdownOpen(false);
-                            }}
-                            className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start justify-between gap-2 ${selectedPreset === preset.id
-                              ? 'bg-indigo-600/20 border-indigo-500/60 text-white shadow-sm'
+                  {isPresetDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 p-1.5 rounded-2xl bg-slate-900 border border-indigo-500/40 shadow-2xl shadow-black/90 z-50 space-y-1 max-h-64 overflow-y-auto backdrop-blur-2xl">
+                      {PASSPORT_SIZE_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedPreset(preset.id);
+                            setIsPresetDropdownOpen(false);
+                          }}
+                          className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start justify-between gap-2 ${
+                            selectedPreset === preset.id
+                              ? 'bg-indigo-600/20 border-indigo-500/60 text-white shadow-xs'
                               : 'bg-slate-950/60 border-transparent text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                              }`}
-                          >
-                            <div className="space-y-0.5 min-w-0">
-                              <span className="font-semibold text-xs text-white block">{preset.name}</span>
-                              <span className="text-[10.5px] text-slate-400 block leading-tight">
-                                {preset.description}
-                              </span>
-                            </div>
-                            {selectedPreset === preset.id && (
-                              <Check className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Custom Dimension Inputs */}
-                  {selectedPreset === 'custom' && (
-                    <div className="pt-2 grid grid-cols-2 gap-3 border-t border-slate-800 animate-in fade-in duration-200">
-                      <div>
-                        <label className="text-xs text-slate-400 block mb-1">Width (mm)</label>
-                        <input
-                          type="number"
-                          value={customWidthMm}
-                          onChange={(e) => setCustomWidthMm(Math.max(10, parseInt(e.target.value) || 35))}
-                          className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-slate-400 block mb-1">Height (mm)</label>
-                        <input
-                          type="number"
-                          value={customHeightMm}
-                          onChange={(e) => setCustomHeightMm(Math.max(10, parseInt(e.target.value) || 45))}
-                          className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
-                        />
-                      </div>
+                          }`}
+                        >
+                          <div className="space-y-0.5 min-w-0">
+                            <span className="font-semibold text-xs text-white block">
+                              {preset.name}
+                            </span>
+                            <span className="text-[10.5px] text-slate-400 block leading-tight">
+                              {preset.description}
+                            </span>
+                          </div>
+                          {selectedPreset === preset.id && (
+                            <Check className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                          )}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Candidate Name & Date of Photo (DoP) Strip Tool */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-white/10 space-y-3.5 shadow-lg">
+            {/* Official Name & Date on Photo (SSC / NTA Strip) */}
+            <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4 shadow-xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FileCheck2 className="w-4 h-4 text-amber-400" />
-                  <div>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                      Name &amp; Date of Photo (DoP)
-                    </h3>
-                    <span className="text-[10px] text-slate-400">SSC, UPSC, NTA NEET/JEE Mandate</span>
-                  </div>
+                  <FileCheck2 className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Name &amp; Date on Photo
+                  </h3>
                 </div>
-
                 <button
                   type="button"
                   onClick={() => setAddNameDateStrip(!addNameDateStrip)}
                   className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     addNameDateStrip
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
                       : 'bg-slate-800 text-slate-400 border border-slate-700'
                   }`}
                 >
-                  {addNameDateStrip ? '✓ Strip Active' : 'Off'}
+                  {addNameDateStrip ? '✓ Enabled' : 'Disabled'}
                 </button>
               </div>
 
               {addNameDateStrip && (
-                <div className="space-y-3 pt-2 border-t border-slate-800 animate-in fade-in duration-200">
+                <div className="space-y-3 pt-2 border-t border-slate-800 text-xs">
                   <div>
-                    <label className="text-xs text-slate-300 font-medium flex items-center gap-1.5 mb-1">
+                    <label className="text-slate-400 block mb-1 font-medium flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>Candidate Full Name:</span>
+                      Candidate Name:
                     </label>
                     <input
                       type="text"
                       value={candidateName}
                       onChange={(e) => setCandidateName(e.target.value)}
-                      placeholder="e.g. RAHUL KUMAR SHARMA"
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs uppercase font-semibold focus:border-indigo-500 focus:outline-none placeholder-slate-600"
+                      placeholder="e.g. RAHUL SHARMA"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white uppercase focus:border-indigo-500 focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs text-slate-300 font-medium flex items-center gap-1.5 mb-1">
-                      <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>Date of Taking Photo (DoP):</span>
+                    <label className="text-slate-400 block mb-1 font-medium flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                      Date of Photo (DOP):
                     </label>
                     <input
                       type="text"
                       value={photoDate}
                       onChange={(e) => setPhotoDate(e.target.value)}
-                      placeholder="e.g. DOP: 20-09-2026"
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs uppercase font-mono focus:border-cyan-500 focus:outline-none placeholder-slate-600"
+                      placeholder="e.g. DOP: 15-08-2024"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono uppercase focus:border-indigo-500 focus:outline-none"
                     />
                   </div>
                 </div>
