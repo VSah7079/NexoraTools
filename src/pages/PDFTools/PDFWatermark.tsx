@@ -222,11 +222,10 @@ export const PDFWatermark: React.FC = () => {
                       onClick={() => {
                         setWatermarkText(p);
                       }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        watermarkText === p
-                          ? 'bg-rose-600 text-white shadow-xs'
-                          : 'bg-slate-950 border border-slate-700 text-slate-300 hover:bg-slate-800'
-                      }`}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${watermarkText === p
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-slate-950 border border-slate-700 text-slate-300 hover:bg-slate-800'
+                        }`}
                     >
                       {p}
                     </button>
@@ -253,11 +252,10 @@ export const PDFWatermark: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setMode('diagonal_grid')}
-                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                    mode === 'diagonal_grid'
-                      ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
-                  }`}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${mode === 'diagonal_grid'
+                    ? 'bg-indigo-600/20 border-indigo-500 text-white'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                    }`}
                 >
                   <div className="font-bold text-xs flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-indigo-400" />
@@ -269,11 +267,10 @@ export const PDFWatermark: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setMode('center_single')}
-                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                    mode === 'center_single'
-                      ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
-                  }`}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${mode === 'center_single'
+                    ? 'bg-indigo-600/20 border-indigo-500 text-white'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                    }`}
                 >
                   <div className="font-bold text-xs flex items-center gap-1.5">
                     <FileCheck className="w-3.5 h-3.5 text-rose-400" />
@@ -292,33 +289,30 @@ export const PDFWatermark: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setPageRange('all')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      pageRange === 'all'
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-950 border border-slate-700 text-slate-300 hover:bg-slate-800'
-                    }`}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${pageRange === 'all'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-slate-950 border border-slate-700 text-slate-300 hover:bg-slate-800'
+                      }`}
                   >
                     All Pages
                   </button>
                   <button
                     type="button"
                     onClick={() => setPageRange('first')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      pageRange === 'first'
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-950 border border-slate-700 text-slate-300 hover:bg-slate-800'
-                    }`}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${pageRange === 'first'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-slate-950 border border-slate-700 text-slate-300 hover:bg-slate-800'
+                      }`}
                   >
                     First Page Only
                   </button>
                   <button
                     type="button"
                     onClick={() => setPageRange('custom')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      pageRange === 'custom'
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-950 border border-slate-700 text-slate-300 hover:bg-slate-800'
-                    }`}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${pageRange === 'custom'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-slate-950 border border-slate-700 text-slate-300 hover:bg-slate-800'
+                      }`}
                   >
                     Custom Pages
                   </button>
