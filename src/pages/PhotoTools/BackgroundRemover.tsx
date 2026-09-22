@@ -65,7 +65,7 @@ function cloneCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
 export const BackgroundRemover: React.FC = () => {
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [progressStatus, setProgressStatus] = useState<string>('Processing AI Neural Segmentation...');
+  const [progressStatus, setProgressStatus] = useState<string>('Initializing Deep Neural AI Model...');
 
   // Background Options
   const [selectedBg, setSelectedBg] = useState<SegmentationOptions['backgroundColor']>('transparent');
@@ -117,13 +117,13 @@ export const BackgroundRemover: React.FC = () => {
     ctx.drawImage(composite, 0, 0);
   }, [selectedBg, customHex, customBgImg, threshold]);
 
-  // Run AI Background Removal
+  // Run Deep Neural AI Background Removal
   const runAiSegmentation = async (source: File | HTMLImageElement) => {
     setIsProcessing(true);
-    setProgressStatus('Initializing Full Neural AI Model...');
+    setProgressStatus('Initializing Deep Neural AI Model...');
 
     try {
-      // 1. Generate pure Alpha Mask and immutable Original Canvas
+      // 1. Generate pure Alpha Mask and immutable Original Canvas via Neural AI
       const { maskCanvas, origCanvas } = await generateAlphaMaskAI(source, (msg) =>
         setProgressStatus(msg)
       );
@@ -249,14 +249,12 @@ export const BackgroundRemover: React.FC = () => {
     const cw = Math.max(20, Math.min(orig.width - cx, Math.round(cropRect.width)));
     const ch = Math.max(20, Math.min(orig.height - cy, Math.round(cropRect.height)));
 
-    // 1. Crop Layer 1: Immutable Original Source Photo Canvas
     const newOrig = document.createElement('canvas');
     newOrig.width = cw;
     newOrig.height = ch;
     const oCtx = newOrig.getContext('2d');
     oCtx?.drawImage(orig, cx, cy, cw, ch, 0, 0, cw, ch);
 
-    // 2. Crop Layer 2: Alpha Mask Canvas
     const newMask = document.createElement('canvas');
     newMask.width = cw;
     newMask.height = ch;
@@ -266,33 +264,21 @@ export const BackgroundRemover: React.FC = () => {
     origCanvasRef.current = newOrig;
     maskCanvasRef.current = newMask;
 
-    // Save history
     historyRef.current.push({
       origCanvas: cloneCanvas(newOrig),
       maskCanvas: cloneCanvas(newMask),
     });
-    if (historyRef.current.length > 15) historyRef.current.shift();
 
     setActiveTool('pointer');
     updateComposite();
-    incrementStat('cropper');
   };
 
-  // Cancel Crop
   const handleCancelCrop = () => {
     setActiveTool('pointer');
   };
 
-  // Pointer drag for Crop Box handles
   const handleCropPointerDown = (handle: DragHandle, e: React.PointerEvent) => {
-    e.preventDefault();
     e.stopPropagation();
-    try {
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {
-      // Ignore
-    }
-
     setActiveHandle(handle);
     setDragStart({
       clientX: e.clientX,
@@ -302,10 +288,9 @@ export const BackgroundRemover: React.FC = () => {
   };
 
   const handleCropPointerMove = (e: React.PointerEvent) => {
-    if (!activeHandle || !dragStart || !origCanvasRef.current || !previewContainerRef.current) return;
-    e.preventDefault();
+    if (!activeHandle || !dragStart || !resultCanvasRef.current || !origCanvasRef.current) return;
 
-    const rect = previewContainerRef.current.getBoundingClientRect();
+    const rect = resultCanvasRef.current.getBoundingClientRect();
     const scaleX = origCanvasRef.current.width / rect.width;
     const scaleY = origCanvasRef.current.height / rect.height;
 
@@ -315,8 +300,9 @@ export const BackgroundRemover: React.FC = () => {
     const init = dragStart.initialCrop;
     const imgW = origCanvasRef.current.width;
     const imgH = origCanvasRef.current.height;
+
     const preset = CROP_RATIO_PRESETS.find((p) => p.id === selectedRatio);
-    const targetRatio = preset?.ratio || null;
+    const fixedRatio = preset?.ratio || null;
 
     let nextX = init.x;
     let nextY = init.y;
@@ -327,189 +313,193 @@ export const BackgroundRemover: React.FC = () => {
       nextX = Math.max(0, Math.min(imgW - init.width, init.x + deltaX));
       nextY = Math.max(0, Math.min(imgH - init.height, init.y + deltaY));
     } else {
-      if (activeHandle.includes('e')) {
-        nextW = Math.max(30, Math.min(imgW - init.x, init.width + deltaX));
-      }
-      if (activeHandle.includes('s')) {
-        nextH = Math.max(30, Math.min(imgH - init.y, init.height + deltaY));
-      }
+      if (activeHandle.includes('e')) nextW = Math.max(30, init.width + deltaX);
+      if (activeHandle.includes('s')) nextH = Math.max(30, init.height + deltaY);
       if (activeHandle.includes('w')) {
-        const potentialW = init.width - deltaX;
-        if (potentialW >= 30 && init.x + deltaX >= 0) {
+        const proposedW = init.width - deltaX;
+        if (proposedW >= 30) {
           nextX = init.x + deltaX;
-          nextW = potentialW;
+          nextW = proposedW;
         }
       }
       if (activeHandle.includes('n')) {
-        const potentialH = init.height - deltaY;
-        if (potentialH >= 30 && init.y + deltaY >= 0) {
+        const proposedH = init.height - deltaY;
+        if (proposedH >= 30) {
           nextY = init.y + deltaY;
-          nextH = potentialH;
+          nextH = proposedH;
         }
       }
 
-      if (targetRatio) {
+      if (fixedRatio) {
         if (activeHandle === 'e' || activeHandle === 'w') {
-          nextH = Math.round(nextW / targetRatio);
-        } else if (activeHandle === 'n' || activeHandle === 's') {
-          nextW = Math.round(nextH * targetRatio);
+          nextH = Math.round(nextW / fixedRatio);
         } else {
-          nextH = Math.round(nextW / targetRatio);
+          nextW = Math.round(nextH * fixedRatio);
         }
       }
     }
 
-    if (nextX < 0) nextX = 0;
-    if (nextY < 0) nextY = 0;
     if (nextX + nextW > imgW) nextW = imgW - nextX;
     if (nextY + nextH > imgH) nextH = imgH - nextY;
 
     setCropRect({
-      x: Math.round(nextX),
-      y: Math.round(nextY),
-      width: Math.round(nextW),
-      height: Math.round(nextH),
+      x: Math.max(0, nextX),
+      y: Math.max(0, nextY),
+      width: Math.max(30, nextW),
+      height: Math.max(30, nextH),
     });
   };
 
-  const handleCropPointerUp = (e: React.PointerEvent) => {
-    if (activeHandle) {
-      try {
-        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch {
-        // Ignore
-      }
-      setActiveHandle(null);
-      setDragStart(null);
-    }
+  const handleCropPointerUp = () => {
+    setActiveHandle(null);
+    setDragStart(null);
   };
 
-  // Manual Touch-up / Brush handlers on canvas
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (activeTool === 'pointer' || activeTool === 'crop' || !maskCanvasRef.current || !resultCanvasRef.current) return;
-    setIsBrushing(true);
-    applyBrushAtEvent(e);
-  };
-
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isBrushing || activeTool === 'pointer' || activeTool === 'crop') return;
-    applyBrushAtEvent(e);
-  };
-
-  const handleCanvasMouseUp = () => {
-    if (isBrushing && origCanvasRef.current && maskCanvasRef.current) {
-      historyRef.current.push({
-        origCanvas: cloneCanvas(origCanvasRef.current),
-        maskCanvas: cloneCanvas(maskCanvasRef.current),
-      });
-      if (historyRef.current.length > 15) historyRef.current.shift();
-    }
-    setIsBrushing(false);
-  };
-
-  const applyBrushAtEvent = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = resultCanvasRef.current;
-    const mCanvas = maskCanvasRef.current;
-    if (!canvas || !mCanvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = mCanvas.width / rect.width;
-    const scaleY = mCanvas.height / rect.height;
-
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-    const radius = (brushSize * scaleX) / 2;
-
-    const mCtx = mCanvas.getContext('2d');
+  // Brush / Eraser Tool Actions on Alpha Mask Canvas
+  const applyBrushToMask = (canvasX: number, canvasY: number, isErase: boolean) => {
+    if (!maskCanvasRef.current) return;
+    const mask = maskCanvasRef.current;
+    const mCtx = mask.getContext('2d');
     if (!mCtx) return;
 
     mCtx.save();
     mCtx.beginPath();
-    mCtx.arc(x, y, radius, 0, Math.PI * 2);
+    mCtx.arc(canvasX, canvasY, brushSize / 2, 0, Math.PI * 2);
 
-    if (activeTool === 'eraser') {
-      // Clear alpha to 0 (make background transparent)
+    if (isErase) {
       mCtx.globalCompositeOperation = 'destination-out';
-      mCtx.fillStyle = 'rgba(0,0,0,1)';
+      mCtx.fillStyle = 'rgba(0, 0, 0, 1)';
       mCtx.fill();
-    } else if (activeTool === 'restore') {
-      // Restore alpha to 255 (reveal original photo pixels with 0 modification)
+    } else {
       mCtx.globalCompositeOperation = 'source-over';
-      mCtx.fillStyle = 'rgba(255,255,255,1)';
+      mCtx.fillStyle = '#FFFFFF';
       mCtx.fill();
     }
-
     mCtx.restore();
+
     updateComposite();
   };
 
+  const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = resultCanvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (activeTool !== 'restore' && activeTool !== 'eraser') return;
+    setIsBrushing(true);
+    const coords = getCanvasCoords(e);
+    applyBrushToMask(coords.x, coords.y, activeTool === 'eraser');
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isBrushing || (activeTool !== 'restore' && activeTool !== 'eraser')) return;
+    const coords = getCanvasCoords(e);
+    applyBrushToMask(coords.x, coords.y, activeTool === 'eraser');
+  };
+
+  const handleCanvasMouseUp = () => {
+    if (!isBrushing) return;
+    setIsBrushing(false);
+    if (origCanvasRef.current && maskCanvasRef.current) {
+      historyRef.current.push({
+        origCanvas: cloneCanvas(origCanvasRef.current),
+        maskCanvas: cloneCanvas(maskCanvasRef.current),
+      });
+      if (historyRef.current.length > 20) historyRef.current.shift();
+    }
+  };
+
   const handleUndo = () => {
-    if (historyRef.current.length > 1) {
-      historyRef.current.pop();
-      const prev = historyRef.current[historyRef.current.length - 1];
-      if (prev) {
-        origCanvasRef.current = cloneCanvas(prev.origCanvas);
-        maskCanvasRef.current = cloneCanvas(prev.maskCanvas);
-        updateComposite();
-      }
+    if (historyRef.current.length <= 1) return;
+    historyRef.current.pop();
+    const prev = historyRef.current[historyRef.current.length - 1];
+    if (prev) {
+      origCanvasRef.current = cloneCanvas(prev.origCanvas);
+      maskCanvasRef.current = cloneCanvas(prev.maskCanvas);
+      updateComposite();
     }
   };
 
   const handleReset = () => {
-    if (sourceFileRef.current) {
-      runAiSegmentation(sourceFileRef.current);
-    } else if (originalImage) {
-      runAiSegmentation(originalImage);
+    if (!origCanvasRef.current || !initialMaskDataRef.current) return;
+    const mask = maskCanvasRef.current;
+    if (!mask) return;
+    const mCtx = mask.getContext('2d');
+    if (mCtx) {
+      mCtx.putImageData(initialMaskDataRef.current, 0, 0);
+      historyRef.current = [
+        {
+          origCanvas: cloneCanvas(origCanvasRef.current),
+          maskCanvas: cloneCanvas(mask),
+        },
+      ];
+      updateComposite();
     }
   };
 
-  const handleCustomBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCustomBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const img = await loadImage(file);
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => {
       setCustomBgImg(img);
       setSelectedBg('image');
-    }
+    };
+    img.src = URL.createObjectURL(file);
   };
 
-  const curW = origCanvasRef.current ? origCanvasRef.current.width : 1;
-  const curH = origCanvasRef.current ? origCanvasRef.current.height : 1;
-
-  const cropLeftPct = (cropRect.x / curW) * 100;
-  const cropTopPct = (cropRect.y / curH) * 100;
-  const cropWidthPct = (cropRect.width / curW) * 100;
-  const cropHeightPct = (cropRect.height / curH) * 100;
+  const cropLeftPct = origCanvasRef.current
+    ? (cropRect.x / origCanvasRef.current.width) * 100
+    : 0;
+  const cropTopPct = origCanvasRef.current
+    ? (cropRect.y / origCanvasRef.current.height) * 100
+    : 0;
+  const cropWidthPct = origCanvasRef.current
+    ? (cropRect.width / origCanvasRef.current.width) * 100
+    : 100;
+  const cropHeightPct = origCanvasRef.current
+    ? (cropRect.height / origCanvasRef.current.height) * 100
+    : 100;
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
       <ToolHeader
-        title="AI Background Remover & Replacer"
-        description="Professional background removal with 100% original photo pixel preservation and interactive cropping. Zero facial retouching, zero color distortion, zero clothing alteration."
+        title="Deep Neural AI Background Remover & Replacer"
+        description="High-precision Deep Neural AI segmentation with zero subject pixel alteration, smart crop, and studio color presets."
         categoryName="Photo Tools"
         categoryPath="/photo/bg-remover"
-        badge="100% Pixel Preserved"
+        badge="Neural AI Engine"
       />
 
       {!originalImage ? (
-        <div className="max-w-3xl mx-auto space-y-8">
+        <div className="max-w-3xl mx-auto space-y-6">
           <UploadZone
             onFileSelect={handleFileSelect}
-            title="Upload Photo to Remove Background & Crop"
-            subtitle="JPG, PNG, or WebP. 100% of subject pixels, skin tone, clothing, and hair are kept untouched."
+            accept="image/*"
+            title="Upload Photo for Deep Neural AI Background Removal"
+            subtitle="Precision neural subject isolation • Transparent PNG, Passport White & Studio colors"
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-              <span className="text-xl font-bold text-cyan-400 block mb-1">Zero Subject Alteration</span>
-              <span className="text-xs text-slate-400">All original pixels, clothes &amp; hair preserved intact</span>
+              <span className="text-xl font-bold text-cyan-400 block mb-1">Deep Neural AI</span>
+              <span className="text-xs text-slate-400">High-precision ISNet neural boundary detection</span>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-              <span className="text-xl font-bold text-sky-400 block mb-1">Interactive Crop Studio</span>
-              <span className="text-xs text-slate-400">Custom ratios, 1:1, 3:4, Passport &amp; ID card</span>
+              <span className="text-xl font-bold text-sky-400 block mb-1">Studio Color Presets</span>
+              <span className="text-xs text-slate-400">White, Sky Blue, Navy &amp; Transparent PNG</span>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-              <span className="text-xl font-bold text-emerald-400 block mb-1">Lossless Transparent PNG</span>
-              <span className="text-xs text-slate-400">True alpha transparency at full resolution</span>
+              <span className="text-xl font-bold text-emerald-400 block mb-1">100% Original Pixels</span>
+              <span className="text-xs text-slate-400">Preserves original face, hair &amp; clothes clarity</span>
             </div>
           </div>
         </div>
@@ -679,7 +669,7 @@ export const BackgroundRemover: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-white mb-1">
-                      Neural AI Foreground Isolation
+                      Deep Neural AI Processing
                     </h4>
                     <p className="text-xs text-cyan-300 font-mono">
                       {progressStatus}

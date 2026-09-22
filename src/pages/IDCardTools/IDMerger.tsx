@@ -21,6 +21,8 @@ import {
   warpPerspective,
   applyScanFilter,
   rotateCanvas,
+  autoDetectCardCorners,
+  getSmartCenteredCardCorners,
 } from '../../utils/perspectiveTransform';
 import { CornerAdjustModal } from '../../components/id/CornerAdjustModal';
 import { PDFDocument } from 'pdf-lib';
@@ -87,7 +89,7 @@ export const IDMerger: React.FC<IDMergerProps> = ({ defaultDocType = 'aadhaar' }
     setTimeout(() => setNotification(null), 3000);
   };
 
-  // Process uploaded ID photo - Clean manual workflow with full frame default
+  // Process uploaded ID photo - Smart card frame
   const processUploadedCard = useCallback(
     (img: HTMLImageElement, file: File): CardSlotData => {
       const sCanvas = document.createElement('canvas');
@@ -96,20 +98,17 @@ export const IDMerger: React.FC<IDMergerProps> = ({ defaultDocType = 'aadhaar' }
       const sCtx = sCanvas.getContext('2d');
       sCtx?.drawImage(img, 0, 0);
 
-      const fullCorners: [Point, Point, Point, Point] = [
-        { x: 0, y: 0 },
-        { x: img.width, y: 0 },
-        { x: img.width, y: img.height },
-        { x: 0, y: img.height },
-      ];
+      const detected = autoDetectCardCorners(sCanvas);
+      const isFull = detected[0].x <= img.width * 0.03 && detected[1].x >= img.width * 0.97;
+      const initialCorners = !isFull ? detected : getSmartCenteredCardCorners(img.width, img.height);
 
-      const warped = warpPerspective(sCanvas, fullCorners, cardWidthPx, cardHeightPx);
+      const warped = warpPerspective(sCanvas, initialCorners, cardWidthPx, cardHeightPx);
       const filtered = applyScanFilter(warped, 'original');
 
       return {
         file,
         sourceCanvas: sCanvas,
-        corners: fullCorners,
+        corners: initialCorners,
         warpedCanvas: filtered,
         rotation: 0,
         filter: 'original',

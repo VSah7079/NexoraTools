@@ -352,6 +352,32 @@ export function autoDetectCardCorners(
 }
 
 /**
+ * Returns a smart centered bounding box with standard CR80 ID Card aspect ratio (85.6 : 54)
+ */
+export function getSmartCenteredCardCorners(width: number, height: number): [Point, Point, Point, Point] {
+  const cardRatio = 85.6 / 54;
+  let targetW = width * 0.76;
+  let targetH = targetW / cardRatio;
+
+  if (targetH > height * 0.76) {
+    targetH = height * 0.76;
+    targetW = targetH * cardRatio;
+  }
+
+  const left = Math.round((width - targetW) / 2);
+  const top = Math.round((height - targetH) / 2);
+  const right = Math.round(left + targetW);
+  const bottom = Math.round(top + targetH);
+
+  return [
+    { x: left, y: top },
+    { x: right, y: top },
+    { x: right, y: bottom },
+    { x: left, y: bottom },
+  ];
+}
+
+/**
  * Intelligent e-Aadhaar Dual Side Extractor.
  * When a single e-Aadhaar slip or 2-sided photo is uploaded, automatically extracts
  * and crops the Front and Back sides simultaneously into CR80 card dimensions.
