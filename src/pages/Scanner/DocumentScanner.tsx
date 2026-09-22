@@ -16,8 +16,18 @@ import { loadImage } from '../../utils/canvasUtils';
 import { PDFDocument } from 'pdf-lib';
 import { downloadBlob } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const DocumentScanner: React.FC = () => {
+  usePageSEO({
+    title: 'Free Document Scanner & CamScanner Online (Perspective Deskew & Magic Filter)',
+    description: 'Scan receipts, letters, documents, and book pages directly in your browser. Auto-deskews 4 corners with perspective transformation and cleans shadows with Magic Color filters.',
+    keywords: 'document scanner, camscanner online free, scan document to pdf, perspective deskew scanner, magic color scan filter, nexora tools',
+    canonicalPath: '/document-scanner',
+    categoryName: 'Scanner Suite',
+    toolName: 'Document Scanner',
+  });
+
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
 
   // 4 Corners: [TL, TR, BR, BL]

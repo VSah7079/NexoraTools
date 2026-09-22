@@ -47,8 +47,18 @@ import {
 import { PDFDocument } from 'pdf-lib';
 import { downloadBlob, printCanvas } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const PassportPhotoSheet: React.FC = () => {
+  usePageSEO({
+    title: 'Free Passport Photo Sheet Generator (4×6 & A4 Print Studio)',
+    description: 'Auto-arrange and print 6, 8, or 30 passport photos on 4x6" photo paper or A4 sheets. 300 DPI high-resolution output with cutting lines and border guides.',
+    keywords: 'passport photo sheet, 4x6 passport photo print, a4 passport sheet generator, print passport photos online, passport print studio, cyber cafe photo sheet, nexora tools',
+    canonicalPath: '/passport-sheet',
+    categoryName: 'Print Studio',
+    toolName: 'Passport Photo Print Studio',
+  });
+
   // Raw uploaded photo & AI segmentation state
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   const [segmentedCanvas, setSegmentedCanvas] = useState<HTMLCanvasElement | null>(null);

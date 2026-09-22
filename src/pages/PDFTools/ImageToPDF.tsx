@@ -11,8 +11,18 @@ import type { ImageToPDFSettings, PDFImageItem } from '../../types/pdf';
 import { createPDFFromImages } from '../../utils/pdfUtils';
 import { downloadBlob, formatFileSize } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const ImageToPDF: React.FC = () => {
+  usePageSEO({
+    title: 'Free JPG to PDF Converter Online (Images to PDF in High Quality)',
+    description: 'Convert JPG, PNG, WebP, and photos to PDF document online in seconds. Reorder images, set custom A4/Letter page size, margins, and download multi-page PDF for free with zero watermark.',
+    keywords: 'jpg to pdf, image to pdf, convert jpg to pdf free, png to pdf, photo to pdf converter, images to pdf document online, jpgtopdf, nexora tools',
+    canonicalPath: '/jpg-to-pdf',
+    categoryName: 'PDF Suite',
+    toolName: 'JPG to PDF Converter',
+  });
+
   const [images, setImages] = useState<PDFImageItem[]>([]);
   const [settings, setSettings] = useState<ImageToPDFSettings>({
     pageSize: 'a4',

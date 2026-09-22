@@ -2,8 +2,17 @@ import React from 'react';
 import { UserCheck, CreditCard, ArrowRight, Zap } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
 import { Link } from 'react-router-dom';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const HowItWorks: React.FC = () => {
+  usePageSEO({
+    title: 'How It Works & Quick Guides for Cyber Cafes & Photo Studios',
+    description: 'Master workflows for passport photo creation, Aadhaar card front & back merging on A4 paper, and exact KB image compression with Nexora Tools guides.',
+    keywords: 'how to create passport photo sheet, how to merge aadhaar front back, exact kb image compression guide, nexora tools guide',
+    canonicalPath: '/how-it-works',
+    categoryName: 'Guide',
+    toolName: 'How It Works Guide',
+  });
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-16 space-y-12">
       <ToolHeader

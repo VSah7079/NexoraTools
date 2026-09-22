@@ -5,8 +5,18 @@ import { UploadZone } from '../../components/common/UploadZone';
 import { getPDFPageCount, parsePageRangeString, splitPDF } from '../../utils/pdfUtils';
 import { downloadBlob } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const SplitPDF: React.FC = () => {
+  usePageSEO({
+    title: 'Free Split PDF Online (Extract Selected Pages from PDF)',
+    description: 'Split PDF files and extract specific page ranges or individual pages into separate PDF files. Free, secure in-browser execution with zero watermark.',
+    keywords: 'split pdf, extract pdf pages, separate pdf pages online free, pdf splitter, cut pdf pages, nexora tools',
+    canonicalPath: '/split-pdf',
+    categoryName: 'PDF Suite',
+    toolName: 'Split PDF',
+  });
+
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number>(1);
   const [rangeInput, setRangeInput] = useState<string>('1-2');

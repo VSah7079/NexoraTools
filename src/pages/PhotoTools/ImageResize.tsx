@@ -5,10 +5,20 @@ import { UploadZone } from '../../components/common/UploadZone';
 import { DownloadDropdown } from '../../components/common/DownloadDropdown';
 import { loadImage, mmToPixels } from '../../utils/canvasUtils';
 import { EXAM_VISA_PRESETS } from '../../data/examPresets';
+import { usePageSEO } from '../../utils/seoHelper';
 
 type Unit = 'px' | 'mm' | 'cm' | 'inch';
 
 export const ImageResize: React.FC = () => {
+  usePageSEO({
+    title: 'Free Image Resizer Online (Pixels, MM, CM, Inches & Custom DPI)',
+    description: 'Resize images by pixel dimensions, centimeters, millimeters, or inches. Set custom 300 DPI resolution, lock aspect ratio, and resize for government exams online.',
+    keywords: 'image resize, resize image online free, resize image in cm mm inches, photo resizer, change image dimensions, nexora tools',
+    canonicalPath: '/image-resize',
+    categoryName: 'Photo Suite',
+    toolName: 'Image Resizer',
+  });
+
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
 
   // Settings

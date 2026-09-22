@@ -13,6 +13,7 @@ import { removeBackgroundClientSide, BG_PRESET_COLORS } from '../../utils/bgRemo
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 interface BatchItem {
   id: string;
@@ -24,6 +25,15 @@ interface BatchItem {
 }
 
 export const BatchTools: React.FC = () => {
+  usePageSEO({
+    title: 'Free Batch Photo & Document Processing (Bulk Compress, Convert & ZIP)',
+    description: 'Process hundreds of photos and documents simultaneously. Bulk compress to exact KB, batch change background colors, and download everything in 1-click ZIP archive.',
+    keywords: 'batch photo processing, bulk image compressor, bulk background changer, batch convert photos, zip download bulk images, nexora tools',
+    canonicalPath: '/batch-tools',
+    categoryName: 'Batch Suite',
+    toolName: 'Batch Processing Tools',
+  });
+
   const [items, setItems] = useState<BatchItem[]>([]);
   const [batchAction, setBatchAction] = useState<'compress' | 'bg-color' | 'passport'>('compress');
   const [targetKB, setTargetKB] = useState<number>(50);

@@ -13,10 +13,20 @@ import {
 } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 type QRType = 'upi' | 'wifi' | 'url' | 'text';
 
 export const QRCodeStudio: React.FC = () => {
+  usePageSEO({
+    title: 'Free QR Code Generator Online (UPI Payments, WiFi, URL & Custom Colors)',
+    description: 'Create high-resolution QR codes for UPI payments (GPay, PhonePe, Paytm), WiFi passwords, websites, and text. Download as PNG, SVG, or printable shop standee.',
+    keywords: 'qr code generator, free upi qr code generator, wifi qr code, generate qr code online free, printable qr standee, nexora tools',
+    canonicalPath: '/qr-generator',
+    categoryName: 'Utilities Suite',
+    toolName: 'QR Code Studio',
+  });
+
   const [qrType, setQrType] = useState<QRType>('upi');
 
   // UPI State

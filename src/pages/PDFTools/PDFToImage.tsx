@@ -7,6 +7,7 @@ import { downloadCanvas } from '../../utils/fileHelpers';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 interface RenderedPage {
   pageNum: number;
@@ -15,6 +16,15 @@ interface RenderedPage {
 }
 
 export const PDFToImage: React.FC = () => {
+  usePageSEO({
+    title: 'Free PDF to JPG Converter Online (Extract High Resolution Images)',
+    description: 'Convert PDF pages to JPG or PNG images online for free. Extract individual pages in crisp 300 DPI high resolution or download all pages as a ZIP file with zero watermark.',
+    keywords: 'pdf to jpg, pdf to image, convert pdf to jpg free, pdf to png, extract images from pdf, pdftojpg, pdf to photo converter, nexora tools',
+    canonicalPath: '/pdf-to-jpg',
+    categoryName: 'PDF Suite',
+    toolName: 'PDF to JPG Converter',
+  });
+
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pages, setPages] = useState<RenderedPage[]>([]);
   const [isRendering, setIsRendering] = useState<boolean>(false);

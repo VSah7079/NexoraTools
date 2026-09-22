@@ -1,8 +1,17 @@
 import React from 'react';
 import { ToolHeader } from '../../components/common/ToolHeader';
 import { Scale, ShieldAlert, Award } from 'lucide-react';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const TermsOfService: React.FC = () => {
+  usePageSEO({
+    title: 'Terms of Service (Free Online Usage for All)',
+    description: 'Terms of service and usage license for Nexora Tools photo, ID card, and PDF workstation.',
+    keywords: 'nexora tools terms of service, free utility license',
+    canonicalPath: '/terms',
+    categoryName: 'Legal',
+    toolName: 'Terms of Service',
+  });
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-16 space-y-8">
       <ToolHeader

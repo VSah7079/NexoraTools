@@ -5,8 +5,18 @@ import { UploadZone } from '../../components/common/UploadZone';
 import { mergePDFs } from '../../utils/pdfUtils';
 import { downloadBlob, formatFileSize } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const MergePDF: React.FC = () => {
+  usePageSEO({
+    title: 'Free Merge PDF Online (Combine Multiple PDF Files into One)',
+    description: 'Combine and merge multiple PDF documents into a single PDF file in your preferred order. 100% free, runs locally in your browser memory for maximum privacy.',
+    keywords: 'merge pdf, combine pdf, join pdf files online free, pdf merger, combine multiple pdf into one, nexora tools',
+    canonicalPath: '/merge-pdf',
+    categoryName: 'PDF Suite',
+    toolName: 'Merge PDF',
+  });
+
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [isMerging, setIsMerging] = useState<boolean>(false);
 

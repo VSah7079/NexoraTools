@@ -6,8 +6,18 @@ import { formatFileSize, downloadBlob } from '../../utils/fileHelpers';
 import { renderPDFPageToCanvas, getPDFPageCount } from '../../utils/pdfUtils';
 import { PDFDocument } from 'pdf-lib';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const CompressPDF: React.FC = () => {
+  usePageSEO({
+    title: 'Free Compress PDF Online (Reduce PDF File Size in MB to KB)',
+    description: 'Compress and reduce PDF file size online while maintaining high document readability and image quality. Choose Recommended, Extreme, or Low compression with zero watermark.',
+    keywords: 'compress pdf, reduce pdf file size, compress pdf to 100kb 200kb, pdf compressor free, reduce pdf size online, nexora tools',
+    canonicalPath: '/compress-pdf',
+    categoryName: 'PDF Suite',
+    toolName: 'Compress PDF',
+  });
+
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [level, setLevel] = useState<'recommended' | 'extreme' | 'low'>('recommended');
   const [isCompressing, setIsCompressing] = useState<boolean>(false);

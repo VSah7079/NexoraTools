@@ -27,6 +27,7 @@ import {
 } from '../../utils/bgRemovalEngine';
 import { loadImage } from '../../utils/canvasUtils';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 type ActiveTool = 'pointer' | 'eraser' | 'restore' | 'crop';
 type DragHandle = 'nw' | 'ne' | 'se' | 'sw' | 'n' | 'e' | 's' | 'w' | 'move' | null;
@@ -63,6 +64,15 @@ function cloneCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
 }
 
 export const BackgroundRemover: React.FC = () => {
+  usePageSEO({
+    title: 'Free AI Background Remover Online (HD & Transparent PNG)',
+    description: '100% Free AI Background Remover. Remove image backgrounds automatically in 1-click with zero watermark and high HD quality. Replace with transparent PNG, white, blue, or custom photo backgrounds.',
+    keywords: 'bg remover, background remover, remove background, remove bg, remove background from image free, transparent png maker, change photo background online, ai background eraser, nexora tools',
+    canonicalPath: '/bg-remover',
+    categoryName: 'Photo Suite',
+    toolName: 'AI Background Remover',
+  });
+
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [progressStatus, setProgressStatus] = useState<string>('Initializing Deep Neural AI Model...');

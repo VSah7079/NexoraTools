@@ -90,78 +90,212 @@ export const App: React.FC = () => {
               {/* Home */}
               <Route path="/" element={<Home />} />
 
-              {/* Photo Suite */}
-              <Route path="/photo/passport" element={<PassportPhotoMaker />} />
+              {/* Background Remover (Direct SEO routes + Category routes) */}
+              <Route path="/bg-remover" element={<BackgroundRemover />} />
+              <Route path="/background-remover" element={<BackgroundRemover />} />
+              <Route path="/remove-bg" element={<BackgroundRemover />} />
+              <Route path="/remove-background" element={<BackgroundRemover />} />
               <Route path="/photo/bg-remover" element={<BackgroundRemover />} />
-              <Route path="/photo/compress" element={<ImageCompress />} />
-              <Route path="/photo/resize" element={<ImageResize />} />
-              <Route path="/photo/crop-rotate" element={<ImageCropRotate />} />
-              <Route path="/photo/signature" element={<SignatureTool />} />
 
-              {/* ID Card Suite */}
-              <Route path="/id/merger" element={<IDMerger />} />
-              <Route path="/id/aadhaar" element={<AadhaarMerger />} />
-
-              {/* Print Studio */}
+              {/* Passport Photo Maker & Studio Print Sheets */}
+              <Route path="/passport-photo-maker" element={<PassportPhotoMaker />} />
+              <Route path="/passport-photo" element={<PassportPhotoMaker />} />
+              <Route path="/passport-size-photo" element={<PassportPhotoMaker />} />
+              <Route path="/photo/passport" element={<PassportPhotoMaker />} />
+              <Route path="/passport-sheet" element={<PassportPhotoSheet />} />
+              <Route path="/passport-photo-sheet" element={<PassportPhotoSheet />} />
+              <Route path="/print-passport-sheet" element={<PassportPhotoSheet />} />
               <Route path="/print/passport-sheet" element={<PassportPhotoSheet />} />
               <Route path="/print/studio" element={<PrintStudio />} />
+
+              {/* Image Conversions: JPG to PDF & PDF to JPG */}
+              <Route path="/jpg-to-pdf" element={<ImageToPDF />} />
+              <Route path="/image-to-pdf" element={<ImageToPDF />} />
+              <Route path="/png-to-pdf" element={<ImageToPDF />} />
+              <Route path="/photo-to-pdf" element={<ImageToPDF />} />
+              <Route path="/jpgtopdf" element={<ImageToPDF />} />
+              <Route path="/pdf/image-to-pdf" element={<ImageToPDF />} />
+
+              <Route path="/pdf-to-jpg" element={<PDFToImage />} />
+              <Route path="/pdf-to-image" element={<PDFToImage />} />
+              <Route path="/pdf-to-png" element={<PDFToImage />} />
+              <Route path="/pdftojpg" element={<PDFToImage />} />
+              <Route path="/pdf/pdf-to-image" element={<PDFToImage />} />
+
+              {/* Image Compression & Editing */}
+              <Route path="/image-compress" element={<ImageCompress />} />
+              <Route path="/compress-image" element={<ImageCompress />} />
+              <Route path="/compress-jpg" element={<ImageCompress />} />
+              <Route path="/compress-png" element={<ImageCompress />} />
+              <Route path="/photo/compress" element={<ImageCompress />} />
+
+              <Route path="/image-resize" element={<ImageResize />} />
+              <Route path="/resize-image" element={<ImageResize />} />
+              <Route path="/photo/resize" element={<ImageResize />} />
+
+              <Route path="/image-crop" element={<ImageCropRotate />} />
+              <Route path="/crop-image" element={<ImageCropRotate />} />
+              <Route path="/photo/crop-rotate" element={<ImageCropRotate />} />
+
+              <Route path="/signature-tool" element={<SignatureTool />} />
+              <Route path="/signature-maker" element={<SignatureTool />} />
+              <Route path="/resize-signature" element={<SignatureTool />} />
+              <Route path="/photo/signature" element={<SignatureTool />} />
+
+              {/* ID Card Suites */}
+              <Route path="/id-card-merger" element={<IDMerger />} />
+              <Route path="/id-merger" element={<IDMerger />} />
+              <Route path="/id/merger" element={<IDMerger />} />
+
+              <Route path="/aadhaar-merger" element={<AadhaarMerger />} />
+              <Route path="/merge-aadhaar" element={<AadhaarMerger />} />
+              <Route path="/id/aadhaar" element={<AadhaarMerger />} />
 
               {/* PDF Master Hub */}
               <Route path="/pdf" element={<PDFHub />} />
               <Route path="/pdf-tools" element={<PDFHub />} />
 
               {/* 1. Organize PDF */}
+              <Route path="/merge-pdf" element={<MergePDF />} />
+              <Route path="/pdf-merge" element={<MergePDF />} />
+              <Route path="/combine-pdf" element={<MergePDF />} />
               <Route path="/pdf/merge" element={<MergePDF />} />
+
+              <Route path="/split-pdf" element={<SplitPDF />} />
+              <Route path="/pdf-split" element={<SplitPDF />} />
+              <Route path="/extract-pdf" element={<SplitPDF />} />
               <Route path="/pdf/split" element={<SplitPDF />} />
+              <Route path="/pdf/extract-pages" element={<SplitPDF />} />
+
+              <Route path="/organize-pdf" element={<OrganizePDF />} />
+              <Route path="/remove-pdf-pages" element={<OrganizePDF />} />
               <Route path="/pdf/organize" element={<OrganizePDF />} />
               <Route path="/pdf/remove-pages" element={<OrganizePDF />} />
-              <Route path="/pdf/extract-pages" element={<SplitPDF />} />
-              <Route path="/pdf/scan" element={<DocumentScanner />} />
 
               {/* 2. Optimize PDF */}
+              <Route path="/compress-pdf" element={<CompressPDF />} />
+              <Route path="/pdf-compress" element={<CompressPDF />} />
+              <Route path="/reduce-pdf-size" element={<CompressPDF />} />
               <Route path="/pdf/compress" element={<CompressPDF />} />
+
+              <Route path="/repair-pdf" element={<RepairPDF />} />
+              <Route path="/fix-pdf" element={<RepairPDF />} />
               <Route path="/pdf/repair" element={<RepairPDF />} />
+
+              <Route path="/ocr-pdf" element={<OCRPDF />} />
+              <Route path="/pdf-ocr" element={<OCRPDF />} />
               <Route path="/pdf/ocr" element={<OCRPDF />} />
 
               {/* 3. Convert to PDF */}
-              <Route path="/pdf/image-to-pdf" element={<ImageToPDF />} />
+              <Route path="/word-to-pdf" element={<WordToPDF />} />
+              <Route path="/doc-to-pdf" element={<WordToPDF />} />
               <Route path="/pdf/word-to-pdf" element={<WordToPDF />} />
+
+              <Route path="/powerpoint-to-pdf" element={<PowerpointToPDF />} />
+              <Route path="/ppt-to-pdf" element={<PowerpointToPDF />} />
               <Route path="/pdf/powerpoint-to-pdf" element={<PowerpointToPDF />} />
+
+              <Route path="/excel-to-pdf" element={<ExcelToPDF />} />
+              <Route path="/xls-to-pdf" element={<ExcelToPDF />} />
               <Route path="/pdf/excel-to-pdf" element={<ExcelToPDF />} />
+
+              <Route path="/html-to-pdf" element={<HTMLToPDF />} />
+              <Route path="/web-to-pdf" element={<HTMLToPDF />} />
               <Route path="/pdf/html-to-pdf" element={<HTMLToPDF />} />
 
               {/* 4. Convert from PDF */}
-              <Route path="/pdf/pdf-to-image" element={<PDFToImage />} />
+              <Route path="/pdf-to-word" element={<PDFToWord />} />
+              <Route path="/pdf-to-doc" element={<PDFToWord />} />
               <Route path="/pdf/pdf-to-word" element={<PDFToWord />} />
+
+              <Route path="/pdf-to-powerpoint" element={<PDFToPowerpoint />} />
+              <Route path="/pdf-to-ppt" element={<PDFToPowerpoint />} />
               <Route path="/pdf/pdf-to-powerpoint" element={<PDFToPowerpoint />} />
+
+              <Route path="/pdf-to-excel" element={<PDFToExcel />} />
+              <Route path="/pdf-to-xls" element={<PDFToExcel />} />
               <Route path="/pdf/pdf-to-excel" element={<PDFToExcel />} />
+
+              <Route path="/pdf-to-pdfa" element={<PDFToPDFA />} />
               <Route path="/pdf/pdf-to-pdfa" element={<PDFToPDFA />} />
+
+              <Route path="/pdf-to-text" element={<PDFToText />} />
+              <Route path="/pdf-to-txt" element={<PDFToText />} />
               <Route path="/pdf/pdf-to-text" element={<PDFToText />} />
 
               {/* 5. Edit PDF */}
+              <Route path="/rotate-pdf" element={<RotatePDF />} />
+              <Route path="/pdf-rotate" element={<RotatePDF />} />
               <Route path="/pdf/rotate" element={<RotatePDF />} />
+
+              <Route path="/page-numbers-pdf" element={<PDFPageNumbers />} />
+              <Route path="/pdf-page-numbers" element={<PDFPageNumbers />} />
+              <Route path="/add-page-numbers-to-pdf" element={<PDFPageNumbers />} />
               <Route path="/pdf/page-numbers" element={<PDFPageNumbers />} />
+
+              <Route path="/watermark-pdf" element={<PDFWatermark />} />
+              <Route path="/pdf-watermark" element={<PDFWatermark />} />
+              <Route path="/add-watermark-pdf" element={<PDFWatermark />} />
               <Route path="/pdf/watermark" element={<PDFWatermark />} />
+
+              <Route path="/crop-pdf" element={<CropPDF />} />
+              <Route path="/pdf-crop" element={<CropPDF />} />
               <Route path="/pdf/crop" element={<CropPDF />} />
+
+              <Route path="/edit-pdf" element={<EditPDF />} />
+              <Route path="/pdf-editor" element={<EditPDF />} />
               <Route path="/pdf/edit" element={<EditPDF />} />
+
+              <Route path="/pdf-forms" element={<PDFForms />} />
+              <Route path="/fill-pdf-forms" element={<PDFForms />} />
               <Route path="/pdf/forms" element={<PDFForms />} />
 
               {/* 6. PDF Security */}
+              <Route path="/unlock-pdf" element={<UnlockPDF />} />
+              <Route path="/remove-pdf-password" element={<UnlockPDF />} />
               <Route path="/pdf/unlock" element={<UnlockPDF />} />
+
+              <Route path="/protect-pdf" element={<ProtectPDF />} />
+              <Route path="/encrypt-pdf" element={<ProtectPDF />} />
+              <Route path="/lock-pdf" element={<ProtectPDF />} />
               <Route path="/pdf/protect" element={<ProtectPDF />} />
+
+              <Route path="/sign-pdf" element={<SignPDF />} />
+              <Route path="/pdf-sign" element={<SignPDF />} />
+              <Route path="/digital-signature-pdf" element={<SignPDF />} />
               <Route path="/pdf/sign" element={<SignPDF />} />
+
+              <Route path="/redact-pdf" element={<RedactPDF />} />
+              <Route path="/pdf-redact" element={<RedactPDF />} />
+              <Route path="/blackout-pdf" element={<RedactPDF />} />
               <Route path="/pdf/redact" element={<RedactPDF />} />
+
+              <Route path="/compare-pdf" element={<ComparePDF />} />
+              <Route path="/pdf-compare" element={<ComparePDF />} />
               <Route path="/pdf/compare" element={<ComparePDF />} />
 
               {/* 7. PDF Intelligence */}
+              <Route path="/pdf-ai-summary" element={<PDFIntelligence />} />
               <Route path="/pdf/ai-summary" element={<PDFIntelligence />} />
+              <Route path="/pdf-translate" element={<PDFIntelligence />} />
               <Route path="/pdf/translate" element={<PDFIntelligence />} />
+              <Route path="/pdf-to-markdown" element={<PDFIntelligence />} />
               <Route path="/pdf/to-markdown" element={<PDFIntelligence />} />
 
               {/* Scanner, Batch & QR */}
+              <Route path="/document-scanner" element={<DocumentScanner />} />
+              <Route path="/cam-scanner" element={<DocumentScanner />} />
+              <Route path="/scan-pdf" element={<DocumentScanner />} />
               <Route path="/scanner" element={<DocumentScanner />} />
-              <Route path="/batch" element={<BatchTools />} />
+              <Route path="/pdf/scan" element={<DocumentScanner />} />
+
+              <Route path="/qr-generator" element={<QRCodeStudio />} />
+              <Route path="/qr-code-generator" element={<QRCodeStudio />} />
               <Route path="/tools/qr-generator" element={<QRCodeStudio />} />
+
+              <Route path="/batch-processing" element={<BatchTools />} />
+              <Route path="/batch-tools" element={<BatchTools />} />
+              <Route path="/batch" element={<BatchTools />} />
 
               {/* Admin & Info */}
               <Route path="/admin" element={<AdminDashboard />} />
@@ -170,7 +304,7 @@ export const App: React.FC = () => {
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/contact" element={<Contact />} />
 
-              {/* 404 */}
+              {/* 404 Catch-All */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

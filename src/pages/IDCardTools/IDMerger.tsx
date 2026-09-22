@@ -28,6 +28,7 @@ import { CornerAdjustModal } from '../../components/id/CornerAdjustModal';
 import { PDFDocument } from 'pdf-lib';
 import { downloadBlob, printCanvas } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 interface CardSlotData {
   file: File | null;
@@ -52,6 +53,15 @@ interface IDMergerProps {
 }
 
 export const IDMerger: React.FC<IDMergerProps> = ({ defaultDocType = 'aadhaar' }) => {
+  usePageSEO({
+    title: 'Free ID Card Merger Online (Merge Front & Back on Single A4 Sheet)',
+    description: 'Merge front and back sides of any ID card (Aadhaar, Voter ID, PAN, Driving Licence, Student ID) onto a single A4 page for instant printing. Features 4-corner perspective deskewing and scanner filters.',
+    keywords: 'id card merger, merge id card front and back, aadhaar card merge front back on a4, pan card merger, print id card a4 sheet, csc cyber cafe id tool, nexora tools',
+    canonicalPath: '/id-card-merger',
+    categoryName: 'ID Suite',
+    toolName: 'ID Card Merger',
+  });
+
   const [selectedDocType, setSelectedDocType] = useState<DocumentType>(defaultDocType);
 
   // Front & Back Card Slots

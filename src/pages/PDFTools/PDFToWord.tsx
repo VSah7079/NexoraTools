@@ -17,6 +17,7 @@ import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
 import { formatFileSize } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
@@ -28,6 +29,15 @@ interface PageTextData {
 }
 
 export const PDFToWord: React.FC = () => {
+  usePageSEO({
+    title: 'Free PDF to Word Converter Online (Editable DOCX Document)',
+    description: 'Convert PDF documents to editable Microsoft Word DOCX files online for free. Extracts formatting, paragraphs, and text accurately with zero watermark.',
+    keywords: 'pdf to word, convert pdf to word free, pdf to docx, pdf to doc converter online, editable word document from pdf, nexora tools',
+    canonicalPath: '/pdf-to-word',
+    categoryName: 'PDF Suite',
+    toolName: 'PDF to Word Converter',
+  });
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [progressText, setProgressText] = useState<string>('');

@@ -26,11 +26,21 @@ import {
 } from '../../utils/autoCropUtils';
 import { autoDetectCardCorners } from '../../utils/perspectiveTransform';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 type DragHandle = 'nw' | 'ne' | 'se' | 'sw' | 'n' | 'e' | 's' | 'w' | 'move' | null;
 type ViewMode = 'auto' | 'manual';
 
 export const ImageCropRotate: React.FC = () => {
+  usePageSEO({
+    title: 'Free Image Crop & Rotate Online (Circular, Passport & Fixed Ratios)',
+    description: 'Crop, rotate, and straighten photos online for free. Features AI subject auto-detect, circle circular crop, 1:1, 4:3, 16:9, passport aspect ratios, and fine angle leveling.',
+    keywords: 'image crop, crop image online free, rotate image, circular photo crop, passport crop tool, photo straightener, nexora tools',
+    canonicalPath: '/image-crop',
+    categoryName: 'Photo Suite',
+    toolName: 'Image Crop & Rotate',
+  });
+
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
 
   // Active View Mode: 'manual' (interactive 8-handle crop box) or 'auto' (preview)

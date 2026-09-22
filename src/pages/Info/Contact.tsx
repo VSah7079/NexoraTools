@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { Send, CheckCircle2 } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const Contact: React.FC = () => {
+  usePageSEO({
+    title: 'Contact Support & Feedback • Nexora Tools',
+    description: 'Get in touch with Nexora Lab Technologies team for support, custom cyber cafe feature requests, or business partnerships.',
+    keywords: 'contact nexora tools, cyber cafe tool support, photo studio tool feedback',
+    canonicalPath: '/contact',
+    categoryName: 'Support',
+    toolName: 'Contact Support',
+  });
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {

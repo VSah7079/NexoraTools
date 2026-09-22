@@ -44,8 +44,18 @@ import {
   type DetectedFace,
 } from '../../utils/faceDetectionUtils';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const PassportPhotoMaker: React.FC = () => {
+  usePageSEO({
+    title: 'Free Passport Photo Maker Online (35×45mm, 2×2", Govt Exam Presets)',
+    description: 'Create official 35x45mm and 2x2 inch passport and visa photos online. Features automatic AI face detection, anti-cutoff head positioning, backdrop color replacer (white/blue), and SSC/UPSC exam date strips.',
+    keywords: 'passport photo maker, passport size photo, create passport photo online free, 35x45mm photo maker, 2x2 inch photo, indian passport photo maker, us visa photo, ssc upsc photo maker, nexora tools',
+    canonicalPath: '/passport-photo-maker',
+    categoryName: 'Photo Suite',
+    toolName: 'Passport Photo Maker',
+  });
+
   const navigate = useNavigate();
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   const [segmentedCanvas, setSegmentedCanvas] = useState<HTMLCanvasElement | null>(null);

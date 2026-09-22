@@ -13,8 +13,18 @@ import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
 import { formatFileSize } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const PDFWatermark: React.FC = () => {
+  usePageSEO({
+    title: 'Free Add Watermark to PDF Online (Custom Text, Seal & Stamp)',
+    description: 'Add custom security watermarks, stamps, and official verification text to your PDF documents. Set opacity, diagonal grid, color, and page ranges with zero watermark.',
+    keywords: 'watermark pdf, add watermark to pdf, stamp pdf, pdf watermark free online, security watermark pdf, nexora tools',
+    canonicalPath: '/watermark-pdf',
+    categoryName: 'PDF Suite',
+    toolName: 'Add PDF Watermark',
+  });
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [watermarkText, setWatermarkText] = useState('FOR VERIFICATION ONLY');
   const [opacity, setOpacity] = useState(0.25);

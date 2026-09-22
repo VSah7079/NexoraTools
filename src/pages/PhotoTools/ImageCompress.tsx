@@ -10,6 +10,7 @@ import { UploadZone } from '../../components/common/UploadZone';
 import { compressToTargetKB, formatFileSize, downloadBlob } from '../../utils/fileHelpers';
 import { loadImage } from '../../utils/canvasUtils';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 const TARGET_PRESETS = [
   { id: 20, label: '20 KB', desc: 'SSC, UPSC, Govt Signature limits' },
@@ -20,6 +21,15 @@ const TARGET_PRESETS = [
 ];
 
 export const ImageCompress: React.FC = () => {
+  usePageSEO({
+    title: 'Free Image Compressor to Exact KB (20KB, 50KB, 100KB for Govt Forms)',
+    description: 'Compress JPG, PNG, and WebP images to exact target KB size (20KB, 50KB, 100KB, 200KB) for UPSC, SSC, NEET, and government portal uploads without losing quality.',
+    keywords: 'image compress, compress image to 20kb, compress image to 50kb, reduce image size in kb, compress jpg online free, upsc ssc photo compress, nexora tools',
+    canonicalPath: '/image-compress',
+    categoryName: 'Photo Suite',
+    toolName: 'Exact KB Image Compressor',
+  });
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
   const [targetKB, setTargetKB] = useState<number>(50);

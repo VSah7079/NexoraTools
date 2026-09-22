@@ -1,8 +1,17 @@
 import React from 'react';
 import { ShieldCheck, Lock, FileText, Database } from 'lucide-react';
 import { ToolHeader } from '../../components/common/ToolHeader';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const PrivacyPolicy: React.FC = () => {
+  usePageSEO({
+    title: 'Zero-Storage Privacy Policy (100% Client-Side Security)',
+    description: 'Learn how Nexora Tools protects your sensitive documents, government IDs, and photos with zero server storage and complete client-side in-memory execution.',
+    keywords: 'nexora tools privacy policy, zero server upload photo tool, secure id card merger, client side pdf tools',
+    canonicalPath: '/privacy',
+    categoryName: 'Legal',
+    toolName: 'Privacy Policy',
+  });
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 pb-16 space-y-8">
       <ToolHeader

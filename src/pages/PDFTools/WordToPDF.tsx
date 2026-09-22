@@ -14,8 +14,18 @@ import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
 import { formatFileSize } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const WordToPDF: React.FC = () => {
+  usePageSEO({
+    title: 'Free Word to PDF Converter Online (DOCX to PDF in High Quality)',
+    description: 'Convert Microsoft Word DOCX and DOC files to PDF documents online for free. Fast in-browser conversion preserving fonts, paragraphs, and styling.',
+    keywords: 'word to pdf, convert docx to pdf, doc to pdf online free, word document to pdf converter, nexora tools',
+    canonicalPath: '/word-to-pdf',
+    categoryName: 'PDF Suite',
+    toolName: 'Word to PDF Converter',
+  });
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [progressText, setProgressText] = useState<string>('');

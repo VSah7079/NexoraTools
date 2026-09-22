@@ -5,8 +5,18 @@ import { UploadZone } from '../../components/common/UploadZone';
 import { cleanSignatureFilter, loadImage } from '../../utils/canvasUtils';
 import { compressToTargetKB, downloadBlob } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const SignatureTool: React.FC = () => {
+  usePageSEO({
+    title: 'Free Online Signature Resizer & Ink Enhancer (Clean Background & 10KB/20KB)',
+    description: 'Clean background noise from scanned signatures and enhance ink clarity. Automatically compresses signature images to exact 10KB, 20KB for SSC, UPSC, and online forms.',
+    keywords: 'signature tool, resize signature to 20kb, clean signature background, signature enhancer, govt exam signature resizer, nexora tools',
+    canonicalPath: '/signature-tool',
+    categoryName: 'Photo Suite',
+    toolName: 'Signature Resizer & Enhancer',
+  });
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(null);
 

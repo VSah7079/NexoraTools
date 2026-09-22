@@ -15,11 +15,21 @@ import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
 import { formatFileSize } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 export const PDFToExcel: React.FC = () => {
+  usePageSEO({
+    title: 'Free PDF to Excel Converter Online (Extract Tables to XLSX & CSV)',
+    description: 'Convert PDF tables and tabular data into editable Microsoft Excel (XLSX) and CSV spreadsheets online for free. Clean data extraction with zero watermark.',
+    keywords: 'pdf to excel, convert pdf to xlsx free, extract table from pdf to excel, pdf to csv converter, nexora tools',
+    canonicalPath: '/pdf-to-excel',
+    categoryName: 'PDF Suite',
+    toolName: 'PDF to Excel Converter',
+  });
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [progressText, setProgressText] = useState<string>('');

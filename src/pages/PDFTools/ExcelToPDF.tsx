@@ -14,8 +14,18 @@ import { ToolHeader } from '../../components/common/ToolHeader';
 import { UploadZone } from '../../components/common/UploadZone';
 import { formatFileSize } from '../../utils/fileHelpers';
 import { incrementStat } from '../../services/analyticsTracker';
+import { usePageSEO } from '../../utils/seoHelper';
 
 export const ExcelToPDF: React.FC = () => {
+  usePageSEO({
+    title: 'Free Excel to PDF Converter Online (XLSX / XLS Spreadsheets to PDF)',
+    description: 'Convert Excel spreadsheets (XLSX, XLS, CSV) into formatted PDF documents online. Supports multi-sheet selection, landscape/portrait tables, and zero watermark.',
+    keywords: 'excel to pdf, convert xlsx to pdf online free, xls to pdf, spreadsheet to pdf converter, nexora tools',
+    canonicalPath: '/excel-to-pdf',
+    categoryName: 'PDF Suite',
+    toolName: 'Excel to PDF Converter',
+  });
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [sheetNames, setSheetNames] = useState<string[]>([]);
