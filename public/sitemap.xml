@@ -92,6 +92,18 @@
     <priority>0.95</priority>
   </url>
   <url>
+    <loc>https://nexoratools.com/pdf/powerpoint-to-pdf</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://nexoratools.com/pdf/pdf-to-powerpoint</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
     <loc>https://nexoratools.com/pdf/excel-to-pdf</loc>
     <lastmod>2026-09-22</lastmod>
     <changefreq>daily</changefreq>
@@ -99,6 +111,18 @@
   </url>
   <url>
     <loc>https://nexoratools.com/pdf/pdf-to-excel</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://nexoratools.com/pdf/html-to-pdf</loc>
+    <lastmod>2026-09-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://nexoratools.com/pdf/pdf-to-pdfa</loc>
     <lastmod>2026-09-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>

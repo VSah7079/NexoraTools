@@ -32,6 +32,10 @@ import { WordToPDF } from './pages/PDFTools/WordToPDF';
 import { ExcelToPDF } from './pages/PDFTools/ExcelToPDF';
 import { PDFToExcel } from './pages/PDFTools/PDFToExcel';
 import { PDFToText } from './pages/PDFTools/PDFToText';
+import { PowerpointToPDF } from './pages/PDFTools/PowerpointToPDF';
+import { PDFToPowerpoint } from './pages/PDFTools/PDFToPowerpoint';
+import { HTMLToPDF } from './pages/PDFTools/HTMLToPDF';
+import { PDFToPDFA } from './pages/PDFTools/PDFToPDFA';
 // Scanner & Batch & QR
 import { DocumentScanner } from './pages/Scanner/DocumentScanner';
 import { BatchTools } from './pages/BatchProcessing/BatchTools';
@@ -92,8 +96,12 @@ export const App: React.FC = () => {
               <Route path="/pdf/pdf-to-image" element={<PDFToImage />} />
               <Route path="/pdf/pdf-to-word" element={<PDFToWord />} />
               <Route path="/pdf/word-to-pdf" element={<WordToPDF />} />
+              <Route path="/pdf/powerpoint-to-pdf" element={<PowerpointToPDF />} />
+              <Route path="/pdf/pdf-to-powerpoint" element={<PDFToPowerpoint />} />
               <Route path="/pdf/excel-to-pdf" element={<ExcelToPDF />} />
               <Route path="/pdf/pdf-to-excel" element={<PDFToExcel />} />
+              <Route path="/pdf/html-to-pdf" element={<HTMLToPDF />} />
+              <Route path="/pdf/pdf-to-pdfa" element={<PDFToPDFA />} />
               <Route path="/pdf/pdf-to-text" element={<PDFToText />} />
               <Route path="/pdf/merge" element={<MergePDF />} />
               <Route path="/pdf/split" element={<SplitPDF />} />

@@ -238,6 +238,16 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/pdf/powerpoint-to-pdf" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
+                  <span className="group-hover:translate-x-1 transition-transform">PowerPoint to PDF</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/pdf/pdf-to-powerpoint" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
+                  <span className="group-hover:translate-x-1 transition-transform">PDF to PowerPoint</span>
+                </Link>
+              </li>
+              <li>
                 <Link to="/pdf/excel-to-pdf" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
                   <span className="group-hover:translate-x-1 transition-transform">Excel to PDF Tables</span>
                 </Link>
@@ -248,28 +258,23 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/pdf/html-to-pdf" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
+                  <span className="group-hover:translate-x-1 transition-transform">HTML to PDF Webpage</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/pdf/pdf-to-pdfa" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
+                  <span className="group-hover:translate-x-1 transition-transform">PDF to PDF/A (ISO 19005)</span>
+                </Link>
+              </li>
+              <li>
                 <Link to="/pdf/pdf-to-text" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
                   <span className="group-hover:translate-x-1 transition-transform">PDF &amp; Text Studio</span>
                 </Link>
               </li>
               <li>
                 <Link to="/pdf/image-to-pdf" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Image to PDF Converter</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/pdf/pdf-to-image" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">PDF to Image (JPG/PNG)</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/pdf/merge" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Merge &amp; Split PDF</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/pdf/compress" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Compress &amp; Watermark</span>
+                  <span className="group-hover:translate-x-1 transition-transform">Image to PDF &amp; Extract</span>
                 </Link>
               </li>
             </ul>

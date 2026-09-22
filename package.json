@@ -20,6 +20,7 @@
     "mammoth": "^1.12.3",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.6.205",
+    "pptxgenjs": "^4.0.1",
     "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

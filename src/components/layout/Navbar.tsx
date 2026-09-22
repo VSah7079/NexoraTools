@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Search,
@@ -15,7 +15,8 @@ import {
   Layers,
   Zap,
   QrCode,
-  ShieldAlert,
+  Presentation,
+  Code2,
 } from 'lucide-react';
 import { NexoraLogo } from '../common/NexoraLogo';
 import { SearchModal } from './SearchModal';
@@ -25,14 +26,63 @@ export const Navbar: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navRef = useRef<HTMLElement>(null);
   const { t } = useLanguage();
   const location = useLocation();
 
-  // Close mobile menu on route change
+  // Handle smooth debounced dropdown hover
+  const handleMouseEnter = (name: string) => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setActiveDropdown(name);
+  };
+
+  const handleMouseLeave = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 220); // 220ms grace period so moving into dropdown never closes
+  };
+
+  const handleToggleDropdown = (name: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setActiveDropdown(activeDropdown === name ? null : name);
+  };
+
+  // Close mobile menu & dropdown on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setActiveDropdown(null);
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+    }
   }, [location.pathname]);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
 
   // Global Keyboard Shortcut (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -58,14 +108,15 @@ export const Navbar: React.FC = () => {
               </Link>
 
               {/* Desktop Nav Links */}
-              <nav className="hidden xl:flex items-center gap-1.5 shrink-0">
+              <nav ref={navRef} className="hidden xl:flex items-center gap-1.5 shrink-0">
                 {/* Photo Tools Dropdown */}
                 <div
                   className="relative"
-                  onMouseEnter={() => setActiveDropdown('photo')}
-                  onMouseLeave={() => setActiveDropdown(null)}
+                  onMouseEnter={() => handleMouseEnter('photo')}
+                  onMouseLeave={handleMouseLeave}
                 >
                   <button
+                    onClick={(e) => handleToggleDropdown('photo', e)}
                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       activeDropdown === 'photo' || location.pathname.startsWith('/photo')
                         ? 'bg-white/10 text-white'
@@ -80,76 +131,82 @@ export const Navbar: React.FC = () => {
                   </button>
 
                   {activeDropdown === 'photo' && (
-                    <div className="absolute top-full left-0 mt-1.5 w-72 p-2.5 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-indigo-950/60 animate-in fade-in zoom-in-95 duration-150 z-50">
-                      <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Photo Utilities
+                    <div
+                      className="absolute top-full left-0 pt-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                      onMouseEnter={() => handleMouseEnter('photo')}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className="w-72 p-2.5 rounded-2xl bg-slate-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-indigo-950/60">
+                        <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Photo Utilities
+                        </div>
+                        <Link
+                          to="/photo/passport"
+                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
+                            <UserCheck className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="font-semibold flex items-center gap-1.5">
+                              {t('passportMaker')}
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300">Popular</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400">35×45mm, 2×2" &amp; Govt exam presets</div>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/photo/bg-remover"
+                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400 group-hover:scale-105 transition-transform">
+                            <Sparkles className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="font-semibold flex items-center gap-1.5">
+                              {t('bgRemover')}
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300">AI</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400">Transparent, white &amp; studio colors</div>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/photo/compress"
+                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
+                            <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">KB</span>
+                          </div>
+                          <div>
+                            <div className="font-semibold">{t('exactCompress')}</div>
+                            <div className="text-[10px] text-slate-400">Target 20KB, 50KB, 100KB for forms</div>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/photo/resize"
+                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
+                            <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">px</span>
+                          </div>
+                          <div>
+                            <div className="font-semibold">Image Resizer &amp; DPI</div>
+                            <div className="text-[10px] text-slate-400">Pixels, mm, cm, 300 DPI support</div>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/photo/signature"
+                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400 group-hover:scale-105 transition-transform">
+                            <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">✍</span>
+                          </div>
+                          <div>
+                            <div className="font-semibold">Signature Tool</div>
+                            <div className="text-[10px] text-slate-400">Paper tint cleaning &amp; ink contrast</div>
+                          </div>
+                        </Link>
                       </div>
-                      <Link
-                        to="/photo/passport"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
-                          <UserCheck className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-semibold flex items-center gap-1.5">
-                            {t('passportMaker')}
-                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300">Popular</span>
-                          </div>
-                          <div className="text-[10px] text-slate-400">35×45mm, 2×2" &amp; Govt exam presets</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/photo/bg-remover"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400 group-hover:scale-105 transition-transform">
-                          <Sparkles className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-semibold flex items-center gap-1.5">
-                            {t('bgRemover')}
-                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300">AI</span>
-                          </div>
-                          <div className="text-[10px] text-slate-400">Transparent, white &amp; studio colors</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/photo/compress"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
-                          <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">KB</span>
-                        </div>
-                        <div>
-                          <div className="font-semibold">{t('exactCompress')}</div>
-                          <div className="text-[10px] text-slate-400">Target 20KB, 50KB, 100KB for forms</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/photo/resize"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
-                          <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">px</span>
-                        </div>
-                        <div>
-                          <div className="font-semibold">Image Resizer &amp; DPI</div>
-                          <div className="text-[10px] text-slate-400">Pixels, mm, cm, 300 DPI support</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/photo/signature"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400 group-hover:scale-105 transition-transform">
-                          <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">✍</span>
-                        </div>
-                        <div>
-                          <div className="font-semibold">Signature Tool</div>
-                          <div className="text-[10px] text-slate-400">Paper tint cleaning &amp; ink contrast</div>
-                        </div>
-                      </Link>
                     </div>
                   )}
                 </div>
@@ -157,10 +214,11 @@ export const Navbar: React.FC = () => {
                 {/* ID Card Tools Dropdown */}
                 <div
                   className="relative"
-                  onMouseEnter={() => setActiveDropdown('id')}
-                  onMouseLeave={() => setActiveDropdown(null)}
+                  onMouseEnter={() => handleMouseEnter('id')}
+                  onMouseLeave={handleMouseLeave}
                 >
                   <button
+                    onClick={(e) => handleToggleDropdown('id', e)}
                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       activeDropdown === 'id' || location.pathname.startsWith('/id')
                         ? 'bg-white/10 text-white'
@@ -175,37 +233,43 @@ export const Navbar: React.FC = () => {
                   </button>
 
                   {activeDropdown === 'id' && (
-                    <div className="absolute top-full left-0 mt-1.5 w-72 p-2.5 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-purple-950/60 animate-in fade-in zoom-in-95 duration-150 z-50">
-                      <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        ID Card Merging
-                      </div>
-                      <Link
-                        to="/id/merger"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
-                          <CreditCard className="w-4 h-4" />
+                    <div
+                      className="absolute top-full left-0 pt-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                      onMouseEnter={() => handleMouseEnter('id')}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className="w-72 p-2.5 rounded-2xl bg-slate-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-purple-950/60">
+                        <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          ID Card Merging
                         </div>
-                        <div>
-                          <div className="font-semibold flex items-center gap-1.5">
-                            {t('idMerger')}
-                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300">Popular</span>
+                        <Link
+                          to="/id/merger"
+                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
+                            <CreditCard className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-slate-400">Aadhaar, Voter, PAN, DL &amp; Ayushman</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/id/aadhaar"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
-                          <ShieldCheck className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">{t('aadhaarMerger')}</div>
-                          <div className="text-[10px] text-slate-400">CR80 standard card &amp; A4 print layout</div>
-                        </div>
-                      </Link>
+                          <div>
+                            <div className="font-semibold flex items-center gap-1.5">
+                              {t('idMerger')}
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300">Popular</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400">Aadhaar, Voter, PAN, DL &amp; Ayushman</div>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/id/aadhaar"
+                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
+                            <ShieldCheck className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="font-semibold">{t('aadhaarMerger')}</div>
+                            <div className="text-[10px] text-slate-400">CR80 standard card &amp; A4 print layout</div>
+                          </div>
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -213,10 +277,11 @@ export const Navbar: React.FC = () => {
                 {/* PDF & Office Tools Dropdown */}
                 <div
                   className="relative"
-                  onMouseEnter={() => setActiveDropdown('pdf')}
-                  onMouseLeave={() => setActiveDropdown(null)}
+                  onMouseEnter={() => handleMouseEnter('pdf')}
+                  onMouseLeave={handleMouseLeave}
                 >
                   <button
+                    onClick={(e) => handleToggleDropdown('pdf', e)}
                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       activeDropdown === 'pdf' || location.pathname.startsWith('/pdf')
                         ? 'bg-white/10 text-white'
@@ -231,176 +296,200 @@ export const Navbar: React.FC = () => {
                   </button>
 
                   {activeDropdown === 'pdf' && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-[560px] p-4 rounded-2xl bg-slate-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-rose-950/60 animate-in fade-in zoom-in-95 duration-150 z-50">
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Col 1: Office Converters */}
-                        <div className="space-y-1">
-                          <div className="px-2 py-1 text-[10px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <Sparkles className="w-3 h-3" />
-                            Office Converters
+                    <div
+                      className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                      onMouseEnter={() => handleMouseEnter('pdf')}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className="w-[620px] p-4 rounded-2xl bg-slate-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-rose-950/60 space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Col 1: CONVERT TO PDF */}
+                          <div className="space-y-1">
+                            <div className="px-2 py-1 text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/5 pb-1.5 mb-1">
+                              <Sparkles className="w-3 h-3" />
+                              Convert to PDF
+                            </div>
+
+                            <Link
+                              to="/pdf/image-to-pdf"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
+                                <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">JPG</span>
+                              </div>
+                              <div>
+                                <div className="font-semibold flex items-center gap-1">
+                                  JPG to PDF
+                                  <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">Images</span>
+                                </div>
+                                <div className="text-[10px] text-slate-400">Multi-image to A4 PDF</div>
+                              </div>
+                            </Link>
+
+                            <Link
+                              to="/pdf/word-to-pdf"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
+                                <FileText className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold flex items-center gap-1">
+                                  Word to PDF
+                                  <span className="text-[9px] px-1 py-0.2 rounded bg-blue-500/20 text-blue-300">DOCX</span>
+                                </div>
+                                <div className="text-[10px] text-slate-400">Vector A4 from Word</div>
+                              </div>
+                            </Link>
+
+                            <Link
+                              to="/pdf/powerpoint-to-pdf"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-orange-500/20 text-orange-400 group-hover:scale-105 transition-transform">
+                                <Presentation className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold flex items-center gap-1">
+                                  PowerPoint to PDF
+                                  <span className="text-[9px] px-1 py-0.2 rounded bg-orange-500/20 text-orange-300">PPTX</span>
+                                </div>
+                                <div className="text-[10px] text-slate-400">16:9 &amp; A4 slide deck</div>
+                              </div>
+                            </Link>
+
+                            <Link
+                              to="/pdf/excel-to-pdf"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
+                                <Layers className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold flex items-center gap-1">
+                                  Excel to PDF
+                                  <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">XLSX</span>
+                                </div>
+                                <div className="text-[10px] text-slate-400">Paginated table layout</div>
+                              </div>
+                            </Link>
+
+                            <Link
+                              to="/pdf/html-to-pdf"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-pink-500/20 text-pink-400 group-hover:scale-105 transition-transform">
+                                <Code2 className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold flex items-center gap-1">
+                                  HTML to PDF
+                                  <span className="text-[9px] px-1 py-0.2 rounded bg-pink-500/20 text-pink-300">Web</span>
+                                </div>
+                                <div className="text-[10px] text-slate-400">Code &amp; web templates</div>
+                              </div>
+                            </Link>
                           </div>
 
-                          <Link
-                            to="/pdf/pdf-to-word"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
-                              <FileText className="w-3.5 h-3.5" />
+                          {/* Col 2: CONVERT FROM PDF */}
+                          <div className="space-y-1 border-l border-white/5 pl-4">
+                            <div className="px-2 py-1 text-[10px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/5 pb-1.5 mb-1">
+                              <Sparkles className="w-3 h-3" />
+                              Convert from PDF
                             </div>
-                            <div>
-                              <div className="font-semibold flex items-center gap-1">
-                                PDF to Word
-                                <span className="text-[9px] px-1 py-0.2 rounded bg-blue-500/20 text-blue-300">DOCX</span>
-                              </div>
-                              <div className="text-[10px] text-slate-400">Structured editable doc</div>
-                            </div>
-                          </Link>
 
-                          <Link
-                            to="/pdf/word-to-pdf"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform">
-                              <FileText className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <div className="font-semibold flex items-center gap-1">
-                                Word to PDF
-                                <span className="text-[9px] px-1 py-0.2 rounded bg-sky-500/20 text-sky-300">A4</span>
+                            <Link
+                              to="/pdf/pdf-to-image"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
+                                <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">JPG</span>
                               </div>
-                              <div className="text-[10px] text-slate-400">Vector PDF from .docx</div>
-                            </div>
-                          </Link>
-
-                          <Link
-                            to="/pdf/excel-to-pdf"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
-                              <Layers className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <div className="font-semibold flex items-center gap-1">
-                                Excel to PDF
-                                <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">XLSX</span>
+                              <div>
+                                <div className="font-semibold">PDF to JPG</div>
+                                <div className="text-[10px] text-slate-400">Extract 300 DPI pages</div>
                               </div>
-                              <div className="text-[10px] text-slate-400">Paginated table layout</div>
-                            </div>
-                          </Link>
+                            </Link>
 
-                          <Link
-                            to="/pdf/pdf-to-excel"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-green-500/20 text-green-400 group-hover:scale-105 transition-transform">
-                              <Layers className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <div className="font-semibold flex items-center gap-1">
-                                PDF to Excel
-                                <span className="text-[9px] px-1 py-0.2 rounded bg-green-500/20 text-green-300">CSV</span>
+                            <Link
+                              to="/pdf/pdf-to-word"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
+                                <FileText className="w-3.5 h-3.5" />
                               </div>
-                              <div className="text-[10px] text-slate-400">Extract grid &amp; sheets</div>
-                            </div>
-                          </Link>
+                              <div>
+                                <div className="font-semibold">PDF to Word</div>
+                                <div className="text-[10px] text-slate-400">Editable DOCX text</div>
+                              </div>
+                            </Link>
 
-                          <Link
-                            to="/pdf/pdf-to-text"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 group-hover:scale-105 transition-transform">
-                              <FileText className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <div className="font-semibold">PDF &amp; Text Studio</div>
-                              <div className="text-[10px] text-slate-400">Text extraction &amp; PDF builder</div>
-                            </div>
-                          </Link>
+                            <Link
+                              to="/pdf/pdf-to-powerpoint"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-orange-500/20 text-orange-400 group-hover:scale-105 transition-transform">
+                                <Presentation className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold">PDF to PowerPoint</div>
+                                <div className="text-[10px] text-slate-400">Presentation PPTX slides</div>
+                              </div>
+                            </Link>
+
+                            <Link
+                              to="/pdf/pdf-to-excel"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-green-500/20 text-green-400 group-hover:scale-105 transition-transform">
+                                <Layers className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold">PDF to Excel</div>
+                                <div className="text-[10px] text-slate-400">Extract XLSX &amp; CSV tables</div>
+                              </div>
+                            </Link>
+
+                            <Link
+                              to="/pdf/pdf-to-pdfa"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold">PDF to PDF/A</div>
+                                <div className="text-[10px] text-slate-400">ISO 19005 archival standard</div>
+                              </div>
+                            </Link>
+
+                            <Link
+                              to="/pdf/pdf-to-text"
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                            >
+                              <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 group-hover:scale-105 transition-transform">
+                                <FileText className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold">PDF &amp; Text Studio</div>
+                                <div className="text-[10px] text-slate-400">Raw notes &amp; text generator</div>
+                              </div>
+                            </Link>
+                          </div>
                         </div>
 
-                        {/* Col 2: PDF Essentials */}
-                        <div className="space-y-1 border-l border-white/5 pl-4">
-                          <div className="px-2 py-1 text-[10px] font-bold text-rose-400 uppercase tracking-wider">
-                            PDF Essentials
+                        {/* Bottom Strip: PDF Operations */}
+                        <div className="pt-2.5 border-t border-white/5 flex items-center justify-between text-xs text-slate-400 px-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">PDF Operations:</span>
+                          <div className="flex items-center gap-3">
+                            <Link to="/pdf/merge" className="hover:text-indigo-300 transition-colors">Merge PDF</Link>
+                            <span>•</span>
+                            <Link to="/pdf/split" className="hover:text-indigo-300 transition-colors">Split PDF</Link>
+                            <span>•</span>
+                            <Link to="/pdf/compress" className="hover:text-indigo-300 transition-colors">Compress PDF</Link>
+                            <span>•</span>
+                            <Link to="/pdf/watermark" className="hover:text-indigo-300 transition-colors">Watermark PDF</Link>
                           </div>
-
-                          <Link
-                            to="/pdf/image-to-pdf"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-red-500/20 text-red-400 group-hover:scale-105 transition-transform">
-                              <FileText className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <div className="font-semibold">{t('imageToPdf')}</div>
-                              <div className="text-[10px] text-slate-400">Multi-image &amp; reorder</div>
-                            </div>
-                          </Link>
-
-                          <Link
-                            to="/pdf/pdf-to-image"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
-                              <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">JPG</span>
-                            </div>
-                            <div>
-                              <div className="font-semibold">{t('pdfToImage')}</div>
-                              <div className="text-[10px] text-slate-400">Extract 300 DPI pages</div>
-                            </div>
-                          </Link>
-
-                          <Link
-                            to="/pdf/merge"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
-                              <Layers className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <div className="font-semibold">Merge PDF Files</div>
-                              <div className="text-[10px] text-slate-400">Combine documents</div>
-                            </div>
-                          </Link>
-
-                          <Link
-                            to="/pdf/split"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-violet-500/20 text-violet-400 group-hover:scale-105 transition-transform">
-                              <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">✂</span>
-                            </div>
-                            <div>
-                              <div className="font-semibold">Split &amp; Extract</div>
-                              <div className="text-[10px] text-slate-400">Extract page ranges</div>
-                            </div>
-                          </Link>
-
-                          <Link
-                            to="/pdf/compress"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
-                              <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">▼</span>
-                            </div>
-                            <div>
-                              <div className="font-semibold">Compress PDF</div>
-                              <div className="text-[10px] text-slate-400">Reduce document size</div>
-                            </div>
-                          </Link>
-
-                          <Link
-                            to="/pdf/watermark"
-                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                          >
-                            <div className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 group-hover:scale-105 transition-transform">
-                              <ShieldAlert className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <div className="font-semibold">{t('pdfWatermark')}</div>
-                              <div className="text-[10px] text-slate-400">Security seals &amp; grid</div>
-                            </div>
-                          </Link>
                         </div>
                       </div>
                     </div>
