@@ -12,11 +12,8 @@ import {
   FileText,
   Printer,
   Scan,
-  Layers,
   Zap,
   QrCode,
-  Presentation,
-  Code2,
 } from 'lucide-react';
 import { NexoraLogo } from '../common/NexoraLogo';
 import { SearchModal } from './SearchModal';
@@ -291,7 +288,7 @@ export const Navbar: React.FC = () => {
                     <div className="p-1 rounded-md bg-rose-500/20 text-rose-400">
                       <FileText className="w-3.5 h-3.5" />
                     </div>
-                    <span>{t('navPdf')} &amp; Office</span>
+                    <span>{t('navPdf')} Suite</span>
                     <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${activeDropdown === 'pdf' ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -301,194 +298,172 @@ export const Navbar: React.FC = () => {
                       onMouseEnter={() => handleMouseEnter('pdf')}
                       onMouseLeave={handleMouseLeave}
                     >
-                      <div className="w-[620px] p-4 rounded-2xl bg-slate-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-rose-950/60 space-y-3">
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* Col 1: CONVERT TO PDF */}
-                          <div className="space-y-1">
-                            <div className="px-2 py-1 text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/5 pb-1.5 mb-1">
-                              <Sparkles className="w-3 h-3" />
-                              Convert to PDF
-                            </div>
-
-                            <Link
-                              to="/pdf/image-to-pdf"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
-                                <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">JPG</span>
-                              </div>
-                              <div>
-                                <div className="font-semibold flex items-center gap-1">
-                                  JPG to PDF
-                                  <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">Images</span>
-                                </div>
-                                <div className="text-[10px] text-slate-400">Multi-image to A4 PDF</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/word-to-pdf"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
-                                <FileText className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold flex items-center gap-1">
-                                  Word to PDF
-                                  <span className="text-[9px] px-1 py-0.2 rounded bg-blue-500/20 text-blue-300">DOCX</span>
-                                </div>
-                                <div className="text-[10px] text-slate-400">Vector A4 from Word</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/powerpoint-to-pdf"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-orange-500/20 text-orange-400 group-hover:scale-105 transition-transform">
-                                <Presentation className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold flex items-center gap-1">
-                                  PowerPoint to PDF
-                                  <span className="text-[9px] px-1 py-0.2 rounded bg-orange-500/20 text-orange-300">PPTX</span>
-                                </div>
-                                <div className="text-[10px] text-slate-400">16:9 &amp; A4 slide deck</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/excel-to-pdf"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
-                                <Layers className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold flex items-center gap-1">
-                                  Excel to PDF
-                                  <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">XLSX</span>
-                                </div>
-                                <div className="text-[10px] text-slate-400">Paginated table layout</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/html-to-pdf"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-pink-500/20 text-pink-400 group-hover:scale-105 transition-transform">
-                                <Code2 className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold flex items-center gap-1">
-                                  HTML to PDF
-                                  <span className="text-[9px] px-1 py-0.2 rounded bg-pink-500/20 text-pink-300">Web</span>
-                                </div>
-                                <div className="text-[10px] text-slate-400">Code &amp; web templates</div>
-                              </div>
-                            </Link>
+                      <div className="w-[960px] max-w-[96vw] p-5 rounded-3xl bg-slate-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-rose-950/60 space-y-4">
+                        {/* Header bar */}
+                        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-white tracking-wide">Nexora Complete PDF Suite</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold border border-rose-500/30">
+                              25+ Tools • 100% Free
+                            </span>
                           </div>
-
-                          {/* Col 2: CONVERT FROM PDF */}
-                          <div className="space-y-1 border-l border-white/5 pl-4">
-                            <div className="px-2 py-1 text-[10px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/5 pb-1.5 mb-1">
-                              <Sparkles className="w-3 h-3" />
-                              Convert from PDF
-                            </div>
-
-                            <Link
-                              to="/pdf/pdf-to-image"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
-                                <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">JPG</span>
-                              </div>
-                              <div>
-                                <div className="font-semibold">PDF to JPG</div>
-                                <div className="text-[10px] text-slate-400">Extract 300 DPI pages</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/pdf-to-word"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
-                                <FileText className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold">PDF to Word</div>
-                                <div className="text-[10px] text-slate-400">Editable DOCX text</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/pdf-to-powerpoint"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-orange-500/20 text-orange-400 group-hover:scale-105 transition-transform">
-                                <Presentation className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold">PDF to PowerPoint</div>
-                                <div className="text-[10px] text-slate-400">Presentation PPTX slides</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/pdf-to-excel"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-green-500/20 text-green-400 group-hover:scale-105 transition-transform">
-                                <Layers className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold">PDF to Excel</div>
-                                <div className="text-[10px] text-slate-400">Extract XLSX &amp; CSV tables</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/pdf-to-pdfa"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform">
-                                <ShieldCheck className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold">PDF to PDF/A</div>
-                                <div className="text-[10px] text-slate-400">ISO 19005 archival standard</div>
-                              </div>
-                            </Link>
-
-                            <Link
-                              to="/pdf/pdf-to-text"
-                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                            >
-                              <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 group-hover:scale-105 transition-transform">
-                                <FileText className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold">PDF &amp; Text Studio</div>
-                                <div className="text-[10px] text-slate-400">Raw notes &amp; text generator</div>
-                              </div>
-                            </Link>
-                          </div>
+                          <Link
+                            to="/pdf"
+                            className="text-xs font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1 bg-rose-500/10 px-3 py-1 rounded-xl transition-colors"
+                          >
+                            <span>Explore All PDF Tools Grid</span>
+                            <span>→</span>
+                          </Link>
                         </div>
 
-                        {/* Bottom Strip: PDF Operations */}
-                        <div className="pt-2.5 border-t border-white/5 flex items-center justify-between text-xs text-slate-400 px-1">
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">PDF Operations:</span>
-                          <div className="flex items-center gap-3">
-                            <Link to="/pdf/merge" className="hover:text-indigo-300 transition-colors">Merge PDF</Link>
-                            <span>•</span>
-                            <Link to="/pdf/split" className="hover:text-indigo-300 transition-colors">Split PDF</Link>
-                            <span>•</span>
-                            <Link to="/pdf/compress" className="hover:text-indigo-300 transition-colors">Compress PDF</Link>
-                            <span>•</span>
-                            <Link to="/pdf/watermark" className="hover:text-indigo-300 transition-colors">Watermark PDF</Link>
+                        {/* 7 Columns Matrix */}
+                        <div className="grid grid-cols-7 gap-3 text-left">
+                          {/* 1. ORGANIZE */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-bold text-orange-400 uppercase tracking-wider pb-1 mb-1 border-b border-white/5 truncate">
+                              Organize PDF
+                            </div>
+                            <Link to="/pdf/merge" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Merge PDF
+                            </Link>
+                            <Link to="/pdf/split" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Split PDF
+                            </Link>
+                            <Link to="/pdf/organize" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Remove pages
+                            </Link>
+                            <Link to="/pdf/split" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Extract pages
+                            </Link>
+                            <Link to="/pdf/organize" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Organize PDF
+                            </Link>
+                            <Link to="/scanner" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Scan to PDF
+                            </Link>
+                          </div>
+
+                          {/* 2. OPTIMIZE */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider pb-1 mb-1 border-b border-white/5 truncate">
+                              Optimize PDF
+                            </div>
+                            <Link to="/pdf/compress" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Compress PDF
+                            </Link>
+                            <Link to="/pdf/repair" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Repair PDF
+                            </Link>
+                            <Link to="/pdf/ocr" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              OCR PDF
+                            </Link>
+                          </div>
+
+                          {/* 3. CONVERT TO */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-wider pb-1 mb-1 border-b border-white/5 truncate">
+                              Convert to PDF
+                            </div>
+                            <Link to="/pdf/image-to-pdf" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              JPG to PDF
+                            </Link>
+                            <Link to="/pdf/word-to-pdf" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              WORD to PDF
+                            </Link>
+                            <Link to="/pdf/powerpoint-to-pdf" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              PPT to PDF
+                            </Link>
+                            <Link to="/pdf/excel-to-pdf" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              EXCEL to PDF
+                            </Link>
+                            <Link to="/pdf/html-to-pdf" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              HTML to PDF
+                            </Link>
+                          </div>
+
+                          {/* 4. CONVERT FROM */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-bold text-sky-400 uppercase tracking-wider pb-1 mb-1 border-b border-white/5 truncate">
+                              Convert from PDF
+                            </div>
+                            <Link to="/pdf/pdf-to-image" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              PDF to JPG
+                            </Link>
+                            <Link to="/pdf/pdf-to-word" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              PDF to WORD
+                            </Link>
+                            <Link to="/pdf/pdf-to-powerpoint" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              PDF to PPT
+                            </Link>
+                            <Link to="/pdf/pdf-to-excel" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              PDF to EXCEL
+                            </Link>
+                            <Link to="/pdf/pdf-to-pdfa" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              PDF to PDF/A
+                            </Link>
+                          </div>
+
+                          {/* 5. EDIT PDF */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-bold text-purple-400 uppercase tracking-wider pb-1 mb-1 border-b border-white/5 truncate">
+                              Edit PDF
+                            </div>
+                            <Link to="/pdf/rotate" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Rotate PDF
+                            </Link>
+                            <Link to="/pdf/page-numbers" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Page numbers
+                            </Link>
+                            <Link to="/pdf/watermark" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Add watermark
+                            </Link>
+                            <Link to="/pdf/crop" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Crop PDF
+                            </Link>
+                            <Link to="/pdf/edit" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Edit PDF
+                            </Link>
+                            <Link to="/pdf/forms" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              PDF Forms
+                            </Link>
+                          </div>
+
+                          {/* 6. SECURITY */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider pb-1 mb-1 border-b border-white/5 truncate">
+                              PDF Security
+                            </div>
+                            <Link to="/pdf/unlock" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Unlock PDF
+                            </Link>
+                            <Link to="/pdf/protect" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Protect PDF
+                            </Link>
+                            <Link to="/pdf/sign" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Sign PDF
+                            </Link>
+                            <Link to="/pdf/redact" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Redact PDF
+                            </Link>
+                            <Link to="/pdf/compare" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Compare PDF
+                            </Link>
+                          </div>
+
+                          {/* 7. INTELLIGENCE */}
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-bold text-fuchsia-400 uppercase tracking-wider pb-1 mb-1 border-b border-white/5 truncate">
+                              Intelligence
+                            </div>
+                            <Link to="/pdf/ai-summary" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              AI Summarizer
+                            </Link>
+                            <Link to="/pdf/translate" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              Translate PDF
+                            </Link>
+                            <Link to="/pdf/to-markdown" className="block py-1 px-1.5 rounded-lg hover:bg-white/5 text-[11px] font-medium text-slate-300 hover:text-white transition-colors truncate">
+                              To Markdown
+                            </Link>
                           </div>
                         </div>
                       </div>

@@ -21,12 +21,27 @@ import { AadhaarMerger } from './pages/IDCardTools/AadhaarMerger';
 import { PassportPhotoSheet } from './pages/PrintStudio/PassportPhotoSheet';
 import { PrintStudio } from './pages/PrintStudio/PrintStudio';
 // PDF & Document Office Tools
+import { PDFHub } from './pages/PDFTools/PDFHub';
 import { ImageToPDF } from './pages/PDFTools/ImageToPDF';
 import { PDFToImage } from './pages/PDFTools/PDFToImage';
 import { MergePDF } from './pages/PDFTools/MergePDF';
 import { SplitPDF } from './pages/PDFTools/SplitPDF';
+import { OrganizePDF } from './pages/PDFTools/OrganizePDF';
 import { CompressPDF } from './pages/PDFTools/CompressPDF';
+import { RepairPDF } from './pages/PDFTools/RepairPDF';
+import { OCRPDF } from './pages/PDFTools/OCRPDF';
 import { PDFWatermark } from './pages/PDFTools/PDFWatermark';
+import { RotatePDF } from './pages/PDFTools/RotatePDF';
+import { PDFPageNumbers } from './pages/PDFTools/PDFPageNumbers';
+import { CropPDF } from './pages/PDFTools/CropPDF';
+import { EditPDF } from './pages/PDFTools/EditPDF';
+import { PDFForms } from './pages/PDFTools/PDFForms';
+import { ProtectPDF } from './pages/PDFTools/ProtectPDF';
+import { UnlockPDF } from './pages/PDFTools/UnlockPDF';
+import { SignPDF } from './pages/PDFTools/SignPDF';
+import { RedactPDF } from './pages/PDFTools/RedactPDF';
+import { ComparePDF } from './pages/PDFTools/ComparePDF';
+import { PDFIntelligence } from './pages/PDFTools/PDFIntelligence';
 import { PDFToWord } from './pages/PDFTools/PDFToWord';
 import { WordToPDF } from './pages/PDFTools/WordToPDF';
 import { ExcelToPDF } from './pages/PDFTools/ExcelToPDF';
@@ -91,22 +106,57 @@ export const App: React.FC = () => {
               <Route path="/print/passport-sheet" element={<PassportPhotoSheet />} />
               <Route path="/print/studio" element={<PrintStudio />} />
 
-              {/* PDF & Document Office Suite */}
-              <Route path="/pdf/image-to-pdf" element={<ImageToPDF />} />
-              <Route path="/pdf/pdf-to-image" element={<PDFToImage />} />
-              <Route path="/pdf/pdf-to-word" element={<PDFToWord />} />
-              <Route path="/pdf/word-to-pdf" element={<WordToPDF />} />
-              <Route path="/pdf/powerpoint-to-pdf" element={<PowerpointToPDF />} />
-              <Route path="/pdf/pdf-to-powerpoint" element={<PDFToPowerpoint />} />
-              <Route path="/pdf/excel-to-pdf" element={<ExcelToPDF />} />
-              <Route path="/pdf/pdf-to-excel" element={<PDFToExcel />} />
-              <Route path="/pdf/html-to-pdf" element={<HTMLToPDF />} />
-              <Route path="/pdf/pdf-to-pdfa" element={<PDFToPDFA />} />
-              <Route path="/pdf/pdf-to-text" element={<PDFToText />} />
+              {/* PDF Master Hub */}
+              <Route path="/pdf" element={<PDFHub />} />
+              <Route path="/pdf-tools" element={<PDFHub />} />
+
+              {/* 1. Organize PDF */}
               <Route path="/pdf/merge" element={<MergePDF />} />
               <Route path="/pdf/split" element={<SplitPDF />} />
+              <Route path="/pdf/organize" element={<OrganizePDF />} />
+              <Route path="/pdf/remove-pages" element={<OrganizePDF />} />
+              <Route path="/pdf/extract-pages" element={<SplitPDF />} />
+              <Route path="/pdf/scan" element={<DocumentScanner />} />
+
+              {/* 2. Optimize PDF */}
               <Route path="/pdf/compress" element={<CompressPDF />} />
+              <Route path="/pdf/repair" element={<RepairPDF />} />
+              <Route path="/pdf/ocr" element={<OCRPDF />} />
+
+              {/* 3. Convert to PDF */}
+              <Route path="/pdf/image-to-pdf" element={<ImageToPDF />} />
+              <Route path="/pdf/word-to-pdf" element={<WordToPDF />} />
+              <Route path="/pdf/powerpoint-to-pdf" element={<PowerpointToPDF />} />
+              <Route path="/pdf/excel-to-pdf" element={<ExcelToPDF />} />
+              <Route path="/pdf/html-to-pdf" element={<HTMLToPDF />} />
+
+              {/* 4. Convert from PDF */}
+              <Route path="/pdf/pdf-to-image" element={<PDFToImage />} />
+              <Route path="/pdf/pdf-to-word" element={<PDFToWord />} />
+              <Route path="/pdf/pdf-to-powerpoint" element={<PDFToPowerpoint />} />
+              <Route path="/pdf/pdf-to-excel" element={<PDFToExcel />} />
+              <Route path="/pdf/pdf-to-pdfa" element={<PDFToPDFA />} />
+              <Route path="/pdf/pdf-to-text" element={<PDFToText />} />
+
+              {/* 5. Edit PDF */}
+              <Route path="/pdf/rotate" element={<RotatePDF />} />
+              <Route path="/pdf/page-numbers" element={<PDFPageNumbers />} />
               <Route path="/pdf/watermark" element={<PDFWatermark />} />
+              <Route path="/pdf/crop" element={<CropPDF />} />
+              <Route path="/pdf/edit" element={<EditPDF />} />
+              <Route path="/pdf/forms" element={<PDFForms />} />
+
+              {/* 6. PDF Security */}
+              <Route path="/pdf/unlock" element={<UnlockPDF />} />
+              <Route path="/pdf/protect" element={<ProtectPDF />} />
+              <Route path="/pdf/sign" element={<SignPDF />} />
+              <Route path="/pdf/redact" element={<RedactPDF />} />
+              <Route path="/pdf/compare" element={<ComparePDF />} />
+
+              {/* 7. PDF Intelligence */}
+              <Route path="/pdf/ai-summary" element={<PDFIntelligence />} />
+              <Route path="/pdf/translate" element={<PDFIntelligence />} />
+              <Route path="/pdf/to-markdown" element={<PDFIntelligence />} />
 
               {/* Scanner, Batch & QR */}
               <Route path="/scanner" element={<DocumentScanner />} />

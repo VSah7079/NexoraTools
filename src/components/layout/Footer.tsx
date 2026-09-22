@@ -223,9 +223,15 @@ export const Footer: React.FC = () => {
               <div className="p-1 rounded-md bg-rose-500/20 text-rose-400">
                 <FileText className="w-3.5 h-3.5" />
               </div>
-              <span>PDF &amp; Office</span>
+              <span>PDF &amp; Office Suite</span>
             </h4>
             <ul className="space-y-2 text-xs">
+              <li>
+                <Link to="/pdf" className="text-rose-400 font-bold hover:text-rose-300 transition-colors flex items-center justify-between group">
+                  <span className="group-hover:translate-x-1 transition-transform">★ All 25+ PDF Tools Grid</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">Suite</span>
+                </Link>
+              </li>
               <li>
                 <Link to="/pdf/pdf-to-word" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center justify-between group">
                   <span className="group-hover:translate-x-1 transition-transform">PDF to Word (.docx)</span>
