@@ -210,7 +210,7 @@ export const Navbar: React.FC = () => {
                   )}
                 </div>
 
-                {/* PDF Tools Dropdown */}
+                {/* PDF & Office Tools Dropdown */}
                 <div
                   className="relative"
                   onMouseEnter={() => setActiveDropdown('pdf')}
@@ -226,87 +226,183 @@ export const Navbar: React.FC = () => {
                     <div className="p-1 rounded-md bg-rose-500/20 text-rose-400">
                       <FileText className="w-3.5 h-3.5" />
                     </div>
-                    <span>{t('navPdf')}</span>
+                    <span>{t('navPdf')} &amp; Office</span>
                     <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${activeDropdown === 'pdf' ? 'rotate-180' : ''}`} />
                   </button>
 
                   {activeDropdown === 'pdf' && (
-                    <div className="absolute top-full left-0 mt-1.5 w-72 p-2.5 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-rose-950/60 animate-in fade-in zoom-in-95 duration-150 z-50">
-                      <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        PDF Operations
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-[560px] p-4 rounded-2xl bg-slate-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-rose-950/60 animate-in fade-in zoom-in-95 duration-150 z-50">
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Col 1: Office Converters */}
+                        <div className="space-y-1">
+                          <div className="px-2 py-1 text-[10px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <Sparkles className="w-3 h-3" />
+                            Office Converters
+                          </div>
+
+                          <Link
+                            to="/pdf/pdf-to-word"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
+                              <FileText className="w-3.5 h-3.5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold flex items-center gap-1">
+                                PDF to Word
+                                <span className="text-[9px] px-1 py-0.2 rounded bg-blue-500/20 text-blue-300">DOCX</span>
+                              </div>
+                              <div className="text-[10px] text-slate-400">Structured editable doc</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/word-to-pdf"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform">
+                              <FileText className="w-3.5 h-3.5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold flex items-center gap-1">
+                                Word to PDF
+                                <span className="text-[9px] px-1 py-0.2 rounded bg-sky-500/20 text-sky-300">A4</span>
+                              </div>
+                              <div className="text-[10px] text-slate-400">Vector PDF from .docx</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/excel-to-pdf"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
+                              <Layers className="w-3.5 h-3.5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold flex items-center gap-1">
+                                Excel to PDF
+                                <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">XLSX</span>
+                              </div>
+                              <div className="text-[10px] text-slate-400">Paginated table layout</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/pdf-to-excel"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-green-500/20 text-green-400 group-hover:scale-105 transition-transform">
+                              <Layers className="w-3.5 h-3.5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold flex items-center gap-1">
+                                PDF to Excel
+                                <span className="text-[9px] px-1 py-0.2 rounded bg-green-500/20 text-green-300">CSV</span>
+                              </div>
+                              <div className="text-[10px] text-slate-400">Extract grid &amp; sheets</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/pdf-to-text"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 group-hover:scale-105 transition-transform">
+                              <FileText className="w-3.5 h-3.5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold">PDF &amp; Text Studio</div>
+                              <div className="text-[10px] text-slate-400">Text extraction &amp; PDF builder</div>
+                            </div>
+                          </Link>
+                        </div>
+
+                        {/* Col 2: PDF Essentials */}
+                        <div className="space-y-1 border-l border-white/5 pl-4">
+                          <div className="px-2 py-1 text-[10px] font-bold text-rose-400 uppercase tracking-wider">
+                            PDF Essentials
+                          </div>
+
+                          <Link
+                            to="/pdf/image-to-pdf"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-red-500/20 text-red-400 group-hover:scale-105 transition-transform">
+                              <FileText className="w-3.5 h-3.5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold">{t('imageToPdf')}</div>
+                              <div className="text-[10px] text-slate-400">Multi-image &amp; reorder</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/pdf-to-image"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
+                              <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">JPG</span>
+                            </div>
+                            <div>
+                              <div className="font-semibold">{t('pdfToImage')}</div>
+                              <div className="text-[10px] text-slate-400">Extract 300 DPI pages</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/merge"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
+                              <Layers className="w-3.5 h-3.5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold">Merge PDF Files</div>
+                              <div className="text-[10px] text-slate-400">Combine documents</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/split"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-violet-500/20 text-violet-400 group-hover:scale-105 transition-transform">
+                              <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">✂</span>
+                            </div>
+                            <div>
+                              <div className="font-semibold">Split &amp; Extract</div>
+                              <div className="text-[10px] text-slate-400">Extract page ranges</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/compress"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
+                              <span className="w-3.5 h-3.5 font-bold text-[10px] flex items-center justify-center">▼</span>
+                            </div>
+                            <div>
+                              <div className="font-semibold">Compress PDF</div>
+                              <div className="text-[10px] text-slate-400">Reduce document size</div>
+                            </div>
+                          </Link>
+
+                          <Link
+                            to="/pdf/watermark"
+                            className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 group-hover:scale-105 transition-transform">
+                              <ShieldAlert className="w-3.5 h-3.5" />
+                            </div>
+                            <div>
+                              <div className="font-semibold">{t('pdfWatermark')}</div>
+                              <div className="text-[10px] text-slate-400">Security seals &amp; grid</div>
+                            </div>
+                          </Link>
+                        </div>
                       </div>
-                      <Link
-                        to="/pdf/image-to-pdf"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-red-500/20 text-red-400 group-hover:scale-105 transition-transform">
-                          <FileText className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">{t('imageToPdf')}</div>
-                          <div className="text-[10px] text-slate-400">Multi-image &amp; drag-to-reorder</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/pdf/pdf-to-image"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
-                          <span className="w-4 h-4 font-bold text-xs flex items-center justify-center">JPG</span>
-                        </div>
-                        <div>
-                          <div className="font-semibold">{t('pdfToImage')}</div>
-                          <div className="text-[10px] text-slate-400">Extract high-resolution pages</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/pdf/merge"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400 group-hover:scale-105 transition-transform">
-                          <Layers className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">Merge PDF Files</div>
-                          <div className="text-[10px] text-slate-400">Combine multiple documents</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/pdf/split"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-violet-500/20 text-violet-400 group-hover:scale-105 transition-transform">
-                          <span className="w-4 h-4 font-bold text-xs flex items-center justify-center">✂</span>
-                        </div>
-                        <div>
-                          <div className="font-semibold">Split &amp; Extract PDF</div>
-                          <div className="text-[10px] text-slate-400">Extract page ranges or split all</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/pdf/compress"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform">
-                          <span className="w-4 h-4 font-bold text-xs flex items-center justify-center">▼</span>
-                        </div>
-                        <div>
-                          <div className="font-semibold">Compress PDF</div>
-                          <div className="text-[10px] text-slate-400">Reduce document file size</div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="/pdf/watermark"
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 text-xs font-medium text-slate-200 hover:text-white transition-colors group"
-                      >
-                        <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400 group-hover:scale-105 transition-transform">
-                          <ShieldAlert className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">{t('pdfWatermark')}</div>
-                          <div className="text-[10px] text-slate-400">Security seals &amp; mesh protection</div>
-                        </div>
-                      </Link>
                     </div>
                   )}
                 </div>

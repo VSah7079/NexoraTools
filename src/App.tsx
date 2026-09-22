@@ -20,13 +20,18 @@ import { AadhaarMerger } from './pages/IDCardTools/AadhaarMerger';
 // Print Studio
 import { PassportPhotoSheet } from './pages/PrintStudio/PassportPhotoSheet';
 import { PrintStudio } from './pages/PrintStudio/PrintStudio';
-// PDF Tools
+// PDF & Document Office Tools
 import { ImageToPDF } from './pages/PDFTools/ImageToPDF';
 import { PDFToImage } from './pages/PDFTools/PDFToImage';
 import { MergePDF } from './pages/PDFTools/MergePDF';
 import { SplitPDF } from './pages/PDFTools/SplitPDF';
 import { CompressPDF } from './pages/PDFTools/CompressPDF';
 import { PDFWatermark } from './pages/PDFTools/PDFWatermark';
+import { PDFToWord } from './pages/PDFTools/PDFToWord';
+import { WordToPDF } from './pages/PDFTools/WordToPDF';
+import { ExcelToPDF } from './pages/PDFTools/ExcelToPDF';
+import { PDFToExcel } from './pages/PDFTools/PDFToExcel';
+import { PDFToText } from './pages/PDFTools/PDFToText';
 // Scanner & Batch & QR
 import { DocumentScanner } from './pages/Scanner/DocumentScanner';
 import { BatchTools } from './pages/BatchProcessing/BatchTools';
@@ -82,9 +87,14 @@ export const App: React.FC = () => {
               <Route path="/print/passport-sheet" element={<PassportPhotoSheet />} />
               <Route path="/print/studio" element={<PrintStudio />} />
 
-              {/* PDF Suite */}
+              {/* PDF & Document Office Suite */}
               <Route path="/pdf/image-to-pdf" element={<ImageToPDF />} />
               <Route path="/pdf/pdf-to-image" element={<PDFToImage />} />
+              <Route path="/pdf/pdf-to-word" element={<PDFToWord />} />
+              <Route path="/pdf/word-to-pdf" element={<WordToPDF />} />
+              <Route path="/pdf/excel-to-pdf" element={<ExcelToPDF />} />
+              <Route path="/pdf/pdf-to-excel" element={<PDFToExcel />} />
+              <Route path="/pdf/pdf-to-text" element={<PDFToText />} />
               <Route path="/pdf/merge" element={<MergePDF />} />
               <Route path="/pdf/split" element={<SplitPDF />} />
               <Route path="/pdf/compress" element={<CompressPDF />} />

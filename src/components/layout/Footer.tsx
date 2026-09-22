@@ -223,9 +223,35 @@ export const Footer: React.FC = () => {
               <div className="p-1 rounded-md bg-rose-500/20 text-rose-400">
                 <FileText className="w-3.5 h-3.5" />
               </div>
-              <span>PDF &amp; Docs</span>
+              <span>PDF &amp; Office</span>
             </h4>
             <ul className="space-y-2 text-xs">
+              <li>
+                <Link to="/pdf/pdf-to-word" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center justify-between group">
+                  <span className="group-hover:translate-x-1 transition-transform">PDF to Word (.docx)</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 font-bold">New</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/pdf/word-to-pdf" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
+                  <span className="group-hover:translate-x-1 transition-transform">Word to PDF (.pdf)</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/pdf/excel-to-pdf" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
+                  <span className="group-hover:translate-x-1 transition-transform">Excel to PDF Tables</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/pdf/pdf-to-excel" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
+                  <span className="group-hover:translate-x-1 transition-transform">PDF to Excel (XLSX/CSV)</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/pdf/pdf-to-text" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
+                  <span className="group-hover:translate-x-1 transition-transform">PDF &amp; Text Studio</span>
+                </Link>
+              </li>
               <li>
                 <Link to="/pdf/image-to-pdf" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
                   <span className="group-hover:translate-x-1 transition-transform">Image to PDF Converter</span>
@@ -238,27 +264,12 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/pdf/merge" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Merge PDF Files</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/pdf/split" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Split &amp; Extract Pages</span>
+                  <span className="group-hover:translate-x-1 transition-transform">Merge &amp; Split PDF</span>
                 </Link>
               </li>
               <li>
                 <Link to="/pdf/compress" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Compress PDF Size</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/pdf/watermark" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">PDF Watermark &amp; Security</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/batch" className="text-slate-400 hover:text-indigo-300 transition-colors flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Batch Multi-File Tools</span>
+                  <span className="group-hover:translate-x-1 transition-transform">Compress &amp; Watermark</span>
                 </Link>
               </li>
             </ul>
