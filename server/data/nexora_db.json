@@ -1,0 +1,423 @@
+{
+  "version": "2.5.0",
+  "site_settings": {
+    "admin_pin": "nexora2026",
+    "global_seo": {
+      "siteName": "Nexora Tools",
+      "titleTemplate": "%s • Nexora Tools",
+      "defaultDescription": "100% Free online workstation for passport photo maker (35×45mm), Aadhaar & ID card front+back merger on A4 sheet, exact 20KB/50KB image compressor, AI background remover, and PDF security tools. Runs in browser RAM with zero server uploads.",
+      "defaultKeywords": "passport photo maker online, bg remover, remove background free, pdf to jpg, jpg to pdf, merge pdf, compress pdf, id card merger a4, exact 20kb image compressor, signature resize, cyber cafe tools, csc center printing tools, nexora tools",
+      "googleVerificationId": "",
+      "bingVerificationId": "",
+      "ga4MeasurementId": "",
+      "adsensePubId": "",
+      "robotsTxtContent": "User-agent: *\nAllow: /\nSitemap: https://nexoratools.com/sitemap.xml",
+      "customHeadScripts": "",
+      "customFooterScripts": ""
+    },
+    "announcement": {
+      "enabled": true,
+      "message": "🚀 All-New PDF to Word (.DOCX) & AI Background Remover are live with 100% Client-Side RAM Processing!",
+      "type": "promo",
+      "linkText": "Try PDF to Word →",
+      "linkUrl": "/pdf-to-word",
+      "closable": true,
+      "badgeText": "New Update"
+    },
+    "branding": {
+      "siteName": "Nexora Tools",
+      "tagline": "Client-Side Cyber Cafe & Document Workstation",
+      "contactEmail": "support@nexoratools.com",
+      "copyrightText": "© 2026 Nexora Tools. Zero Cloud Retention • High-Speed Client RAM.",
+      "supportPhone": "",
+      "twitterUrl": "https://twitter.com",
+      "githubUrl": "https://github.com",
+      "telegramUrl": "https://telegram.org",
+      "youtubeUrl": "https://youtube.com"
+    },
+    "last_updated": "2026-09-23T04:43:50.419Z"
+  },
+  "tools": [
+    {
+      "id": "passport-maker",
+      "name": "Passport Photo Maker",
+      "shortName": "Passport Photo",
+      "description": "Create compliant 35×45mm, 2×2\", 30×40mm passport photos with custom background colors and print guides.",
+      "category": "photo",
+      "path": "/photo/passport",
+      "iconName": "UserCheck",
+      "badge": "Most Popular",
+      "popular": true,
+      "color": "from-blue-500 to-indigo-600",
+      "enabled": true
+    },
+    {
+      "id": "bg-remover",
+      "name": "AI Background Remover & Replacer",
+      "shortName": "Remove Background",
+      "description": "Remove photo backgrounds automatically and replace with transparent, solid white, sky blue, or studio colors.",
+      "category": "photo",
+      "path": "/photo/bg-remover",
+      "iconName": "Sparkles",
+      "badge": "AI Powered",
+      "popular": true,
+      "color": "from-purple-500 to-pink-600",
+      "enabled": true
+    },
+    {
+      "id": "image-compress",
+      "name": "Image Compressor (Exact KB)",
+      "shortName": "Compress Image",
+      "description": "Compress photos to exact target file sizes (20KB, 50KB, 100KB, 200KB) for government and job portal uploads.",
+      "category": "photo",
+      "path": "/photo/compress",
+      "iconName": "Minimize2",
+      "popular": true,
+      "color": "from-emerald-500 to-teal-600",
+      "enabled": true
+    },
+    {
+      "id": "image-resize",
+      "name": "Image Resizer & DPI Converter",
+      "shortName": "Resize Image",
+      "description": "Resize image dimensions by pixels, mm, cm, or inches with aspect ratio lock and 300 DPI support.",
+      "category": "photo",
+      "path": "/photo/resize",
+      "iconName": "Maximize2",
+      "color": "from-amber-500 to-orange-600",
+      "enabled": true
+    },
+    {
+      "id": "image-crop-rotate",
+      "name": "Crop, Rotate & Enhance",
+      "shortName": "Crop & Rotate",
+      "description": "Quick freeform or preset aspect-ratio cropping, 90° flip/rotate, brightness and contrast tuning.",
+      "category": "photo",
+      "path": "/photo/crop-rotate",
+      "iconName": "Crop",
+      "color": "from-cyan-500 to-blue-600",
+      "enabled": true
+    },
+    {
+      "id": "signature-tool",
+      "name": "Signature Resizer & Enhancer",
+      "shortName": "Signature Tool",
+      "description": "Clean paper backgrounds, darken pen ink, crop, and compress signature to 10-20KB for online forms.",
+      "category": "photo",
+      "path": "/photo/signature",
+      "iconName": "PenTool",
+      "badge": "Govt Form Ready",
+      "color": "from-rose-500 to-red-600",
+      "enabled": true
+    },
+    {
+      "id": "id-merger",
+      "name": "ID Card Merger (Front + Back)",
+      "shortName": "Merge ID Cards",
+      "description": "Merge front & back of Aadhaar, Voter ID, PAN, Driving Licence, or Student IDs into a single horizontal or vertical sheet.",
+      "category": "id-card",
+      "path": "/id/merger",
+      "iconName": "CreditCard",
+      "badge": "Cyber Cafe Essential",
+      "popular": true,
+      "color": "from-indigo-500 to-violet-600",
+      "enabled": true
+    },
+    {
+      "id": "aadhaar-merger",
+      "name": "Aadhaar Card Merger (A4 Print)",
+      "shortName": "Aadhaar Merger",
+      "description": "Specifically formatted for Aadhaar cards with official CR80 card dimensions on an A4 print-ready layout.",
+      "category": "id-card",
+      "path": "/id/aadhaar",
+      "iconName": "FileCheck2",
+      "color": "from-sky-500 to-cyan-600",
+      "enabled": true
+    },
+    {
+      "id": "passport-sheet",
+      "name": "Passport Photo Print Sheet",
+      "shortName": "Passport Sheet",
+      "description": "Arrange 4, 6, 8, 12, 16, or 32 passport photos on 4×6 inch, A4, or A5 photo paper with cutting guidelines.",
+      "category": "print",
+      "path": "/print/passport-sheet",
+      "iconName": "Printer",
+      "badge": "Instant Print",
+      "popular": true,
+      "color": "from-indigo-500 to-purple-600",
+      "enabled": true
+    },
+    {
+      "id": "print-studio",
+      "name": "Print Layout Studio",
+      "shortName": "Print Studio",
+      "description": "Multi-image grid arranging for quick printing on standard paper sizes with alignment guides.",
+      "category": "print",
+      "path": "/print/studio",
+      "iconName": "Layers",
+      "color": "from-pink-500 to-rose-600",
+      "enabled": true
+    },
+    {
+      "id": "pdf-hub",
+      "name": "PDF Master Hub",
+      "shortName": "PDF Tools",
+      "description": "Complete all-in-one PDF toolkit: Merge, split, compress, convert, sign, lock, unlock, and organize PDF documents.",
+      "category": "pdf",
+      "path": "/pdf",
+      "iconName": "FileText",
+      "badge": "All-In-One Hub",
+      "popular": true,
+      "color": "from-red-500 to-rose-600",
+      "enabled": true
+    },
+    {
+      "id": "pdf-merge",
+      "name": "Merge PDF Files",
+      "shortName": "Merge PDF",
+      "description": "Combine multiple PDF files into one clean document with drag-and-drop page ordering.",
+      "category": "pdf",
+      "path": "/pdf/merge",
+      "iconName": "Layers",
+      "popular": true,
+      "color": "from-blue-500 to-indigo-600",
+      "enabled": true
+    },
+    {
+      "id": "pdf-split",
+      "name": "Split PDF & Extract Pages",
+      "shortName": "Split PDF",
+      "description": "Separate one page or a whole set for easy conversion into independent PDF files.",
+      "category": "pdf",
+      "path": "/pdf/split",
+      "iconName": "Scissors",
+      "color": "from-purple-500 to-pink-600",
+      "enabled": true
+    },
+    {
+      "id": "pdf-compress",
+      "name": "Compress PDF File",
+      "shortName": "Compress PDF",
+      "description": "Reduce PDF file size while maintaining optimum document clarity for email and portal uploads.",
+      "category": "pdf",
+      "path": "/pdf/compress",
+      "iconName": "Minimize2",
+      "popular": true,
+      "color": "from-emerald-500 to-teal-600",
+      "enabled": true
+    },
+    {
+      "id": "pdf-to-word",
+      "name": "PDF to Word (.docx)",
+      "shortName": "PDF to Word",
+      "description": "Convert PDF documents into editable Microsoft Word files with layout preservation.",
+      "category": "pdf",
+      "path": "/pdf/pdf-to-word",
+      "iconName": "FileText",
+      "badge": "New",
+      "popular": true,
+      "color": "from-blue-600 to-cyan-600",
+      "enabled": true
+    },
+    {
+      "id": "jpg-to-pdf",
+      "name": "JPG to PDF Converter",
+      "shortName": "JPG to PDF",
+      "description": "Convert JPG, PNG, WEBP and multiple images into clean vector PDF documents in seconds.",
+      "category": "pdf",
+      "path": "/pdf/image-to-pdf",
+      "iconName": "FileText",
+      "popular": true,
+      "color": "from-amber-500 to-orange-600",
+      "enabled": true
+    },
+    {
+      "id": "pdf-to-jpg",
+      "name": "PDF to JPG Converter",
+      "shortName": "PDF to JPG",
+      "description": "Extract high-resolution images or save each page as a separate JPG or PNG image.",
+      "category": "pdf",
+      "path": "/pdf/pdf-to-image",
+      "iconName": "Sparkles",
+      "popular": true,
+      "color": "from-cyan-500 to-blue-600",
+      "enabled": true
+    },
+    {
+      "id": "doc-scanner",
+      "name": "Document Camera Scanner",
+      "shortName": "Doc Scanner",
+      "description": "Scan physical papers, bills, and certificates using webcam/phone camera with auto-edge detection and PDF export.",
+      "category": "scanner",
+      "path": "/scanner",
+      "iconName": "Scan",
+      "badge": "HD Cam Scanner",
+      "popular": true,
+      "color": "from-teal-500 to-emerald-600",
+      "enabled": true
+    },
+    {
+      "id": "qr-studio",
+      "name": "QR Code Studio",
+      "shortName": "QR Generator",
+      "description": "Generate high-res vector QR codes for URLs, WiFi credentials, UPI payments, and contact vCards.",
+      "category": "scanner",
+      "path": "/qr-generator",
+      "iconName": "QrCode",
+      "badge": "Instant Vector",
+      "color": "from-indigo-500 to-blue-600",
+      "enabled": true
+    },
+    {
+      "id": "batch-tools",
+      "name": "Batch Processing Hub",
+      "shortName": "Batch Tools",
+      "description": "Bulk compress, convert, watermark, and rename hundreds of photos and documents in parallel.",
+      "category": "batch",
+      "path": "/batch",
+      "iconName": "Zap",
+      "badge": "High Performance",
+      "popular": true,
+      "color": "from-purple-500 to-indigo-600",
+      "enabled": true
+    }
+  ],
+  "seo_routes": {
+    "/": {
+      "path": "/",
+      "title": "Free Photo, ID Card, PDF & Print Workstation (No Watermark)",
+      "description": "100% Free online workstation for passport photo maker (35×45mm), Aadhaar & ID card front+back merger on A4, exact 20KB/50KB image compressor, and PDF tools.",
+      "keywords": "passport photo maker online, aadhaar card merge front back, id card merger a4, image compressor 20kb 50kb upsc ssc, ai background remover free, pdf watermark free, image to pdf, signature resizer",
+      "canonicalUrl": "https://nexoratools.com/",
+      "robots": "index, follow",
+      "categoryName": "General"
+    },
+    "/bg-remover": {
+      "path": "/bg-remover",
+      "title": "Free AI Background Remover Online (Transparent & White Background HD)",
+      "description": "Instantly remove and change image backgrounds to transparent PNG, studio white, sky blue, or custom solid colors. 100% free, fast, zero watermark.",
+      "keywords": "bg remover, remove background online, background remover free, photo background changer, ai background eraser, passport white background, transparent png",
+      "canonicalUrl": "https://nexoratools.com/bg-remover",
+      "robots": "index, follow",
+      "categoryName": "Photo Tools",
+      "toolName": "AI Background Remover"
+    },
+    "/passport-photo-maker": {
+      "path": "/passport-photo-maker",
+      "title": "Free Passport Photo Maker Online (35×45mm, 2×2\", Govt Exam Presets)",
+      "description": "Create compliant 35×45mm, 2×2 inch, 30×40mm passport size photos with smart auto-framing, no head cutoff, white/blue background replacer, and exact 20KB-50KB compressor.",
+      "keywords": "passport photo maker, passport size photo creator, 35x45mm photo online, 2x2 passport photo, govt exam photo resizer, ssc upsc photo maker free",
+      "canonicalUrl": "https://nexoratools.com/passport-photo-maker",
+      "robots": "index, follow",
+      "categoryName": "Photo Tools",
+      "toolName": "Passport Photo Maker"
+    },
+    "/passport-sheet": {
+      "path": "/passport-sheet",
+      "title": "Passport Photo Print Sheet Studio (4×6\", A4, A5 - 4/6/8/16/32 Photos)",
+      "description": "Arrange 4, 6, 8, 12, 16, 24, 32 passport photos on 4×6 inch photo paper or A4 sheets with cutting borders, alignment markers, and 1-click print.",
+      "keywords": "passport photo print sheet, 4x6 passport sheet maker, 8 passport photos on 4x6, 16 photos on a4, studio photo sheet generator free",
+      "canonicalUrl": "https://nexoratools.com/passport-sheet",
+      "robots": "index, follow",
+      "categoryName": "Print Studio",
+      "toolName": "Passport Photo Print Sheet"
+    },
+    "/jpg-to-pdf": {
+      "path": "/jpg-to-pdf",
+      "title": "JPG to PDF Converter Online Free - Convert Images to PDF (A4/Fit)",
+      "description": "Convert JPG, PNG, WEBP and multiple images into clean vector PDF documents in seconds. Drag to reorder, custom margins, portrait & landscape.",
+      "keywords": "jpg to pdf, image to pdf, png to pdf, convert photo to pdf online, photo to pdf free, multiple images to one pdf, combine jpg to pdf",
+      "canonicalUrl": "https://nexoratools.com/jpg-to-pdf",
+      "robots": "index, follow",
+      "categoryName": "PDF Tools",
+      "toolName": "JPG to PDF Converter"
+    },
+    "/pdf-to-jpg": {
+      "path": "/pdf-to-jpg",
+      "title": "PDF to JPG Converter Online Free - Extract High-Res Pages (300 DPI)",
+      "description": "Convert PDF pages into high-resolution JPG or PNG images with 300 DPI clarity. Fast client-side RAM extraction with zero server uploads.",
+      "keywords": "pdf to jpg, pdf to image, pdf to png, convert pdf to jpg online free, extract images from pdf, high resolution pdf to jpg 300 dpi",
+      "canonicalUrl": "https://nexoratools.com/pdf-to-jpg",
+      "robots": "index, follow",
+      "categoryName": "PDF Tools",
+      "toolName": "PDF to JPG Converter"
+    },
+    "/merge-pdf": {
+      "path": "/merge-pdf",
+      "title": "Merge PDF Online Free - Combine Multiple PDF Files into One",
+      "description": "Fastest client-side PDF merger. Combine multiple PDF documents into a single organized file in seconds with custom page ordering.",
+      "keywords": "merge pdf, combine pdf, join pdf files online, free pdf merger, combine multiple pdf into one, merge pdf no watermark",
+      "canonicalUrl": "https://nexoratools.com/merge-pdf",
+      "robots": "index, follow",
+      "categoryName": "PDF Tools",
+      "toolName": "Merge PDF"
+    },
+    "/split-pdf": {
+      "path": "/split-pdf",
+      "title": "Split PDF Online Free - Extract Specific Pages or Ranges",
+      "description": "Split PDF documents by custom page numbers or ranges (e.g. 1-5, 8, 11-14) or extract every single page into individual PDF files.",
+      "keywords": "split pdf, extract pdf pages, separate pdf pages online free, split pdf into multiple files, extract page ranges from pdf",
+      "canonicalUrl": "https://nexoratools.com/split-pdf",
+      "robots": "index, follow",
+      "categoryName": "PDF Tools",
+      "toolName": "Split PDF"
+    },
+    "/compress-pdf": {
+      "path": "/compress-pdf",
+      "title": "Compress PDF Online Free - Reduce PDF File Size (Extreme / Recommended)",
+      "description": "Reduce PDF file size for email attachments and government job applications without losing visual clarity. 100% private in-browser compression.",
+      "keywords": "compress pdf, reduce pdf size, shrink pdf file online free, pdf size reducer 100kb, compress pdf for email portal",
+      "canonicalUrl": "https://nexoratools.com/compress-pdf",
+      "robots": "index, follow",
+      "categoryName": "PDF Tools",
+      "toolName": "Compress PDF"
+    },
+    "/id-card-merger": {
+      "path": "/id-card-merger",
+      "title": "ID Card Merger Online Free - Combine Front & Back on Single A4 Sheet",
+      "description": "Merge front and back sides of Aadhaar, Voter ID, Driving Licence, PAN, or School IDs into one print-ready A4 page with CR80 dimensions.",
+      "keywords": "id card merger, merge front and back id card, aadhaar front back merge a4, voter id print single page, csc id card printing tool free",
+      "canonicalUrl": "https://nexoratools.com/id-card-merger",
+      "robots": "index, follow",
+      "categoryName": "ID Card Tools",
+      "toolName": "ID Card Merger"
+    },
+    "/pdf-to-word": {
+      "path": "/pdf-to-word",
+      "title": "PDF to Word Converter Online Free - Convert PDF to DOCX (100% Editable)",
+      "description": "Convert PDF files into fully editable Microsoft Word (.docx) documents with structured paragraphs, headings, and clean formatting.",
+      "keywords": "pdf to word, convert pdf to word docx, free pdf to word converter editable, pdf to docx online, extract word from pdf",
+      "canonicalUrl": "https://nexoratools.com/pdf-to-word",
+      "robots": "index, follow",
+      "categoryName": "PDF Tools",
+      "toolName": "PDF to Word Converter"
+    },
+    "/image-compress": {
+      "path": "/image-compress",
+      "title": "Image Compressor to Exact KB (20KB, 50KB, 100KB, 200KB) - Free Online",
+      "description": "Compress photos and documents to exact target file sizes in KB for government job portals (UPSC, SSC, IBPS, State PSC).",
+      "keywords": "image compressor exact kb, compress photo to 20kb, photo compress to 50kb online, compress image for upsc ssc form, reduce image size in kb",
+      "canonicalUrl": "https://nexoratools.com/image-compress",
+      "robots": "index, follow",
+      "categoryName": "Photo Tools",
+      "toolName": "Image Compressor"
+    }
+  },
+  "analytics": {
+    "totalProcessed": 142,
+    "passportPhotosCreated": 58,
+    "idCardsMerged": 42,
+    "pdfsGenerated": 26,
+    "scansCompleted": 16,
+    "batchItemsProcessed": 0,
+    "lastActive": "2026-09-23T04:43:50.419Z"
+  },
+  "audit_logs": [
+    {
+      "id": "log-1",
+      "timestamp": "2026-09-23T04:43:50.419Z",
+      "action": "SYSTEM_INIT",
+      "details": "Nexora Tools Master Database Initialized with default enterprise seed schema."
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type { RouteSEOConfig, GlobalSEOSettings } from '../types/admin';
 
 export interface SEOProps {
   title?: string;
@@ -16,21 +17,44 @@ const DEFAULT_DESC =
 const DEFAULT_KEYWORDS =
   'passport photo maker online, bg remover, remove background free, pdf to jpg, jpg to pdf, merge pdf, compress pdf, id card merger a4, exact 20kb image compressor, signature resize, free cyber cafe tools, csc center printing tools, nexora tools';
 
+// Helper to retrieve live SEO override from LocalStorage
+function getDynamicSEOSettings(pathname: string): { routeSEO?: RouteSEOConfig; globalSEO?: GlobalSEOSettings } {
+  try {
+    const raw = localStorage.getItem('nexora_site_config_v2');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const cleanPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
+      const routeSEO = parsed.seoRoutes?.[cleanPath];
+      const globalSEO = parsed.globalSEO;
+      return { routeSEO, globalSEO };
+    }
+  } catch (e) {
+    // Ignore error
+  }
+  return {};
+}
+
 export const updatePageSEO = ({
   title,
   description,
   keywords,
-  canonicalPath = '/',
+  canonicalPath = typeof window !== 'undefined' ? window.location.pathname : '/',
   categoryName = 'Online Tools',
   toolName,
   schemaType = 'WebApplication',
 }: SEOProps) => {
-  const fullTitle = title
-    ? `${title} • Nexora Tools`
-    : DEFAULT_TITLE;
-  const fullDesc = description || DEFAULT_DESC;
-  const fullKeywords = keywords || DEFAULT_KEYWORDS;
-  const canonicalUrl = `https://nexoratools.com${canonicalPath.startsWith('/') ? canonicalPath : '/' + canonicalPath}`;
+  const currentPath = canonicalPath.startsWith('/') ? canonicalPath : '/' + canonicalPath;
+  const { routeSEO, globalSEO } = getDynamicSEOSettings(currentPath);
+
+  const effectiveTitle = routeSEO?.title || title;
+  const effectiveDesc = routeSEO?.description || description || globalSEO?.defaultDescription || DEFAULT_DESC;
+  const effectiveKeywords = routeSEO?.keywords || keywords || globalSEO?.defaultKeywords || DEFAULT_KEYWORDS;
+  const effectiveCanonical = routeSEO?.canonicalUrl || `https://nexoratools.com${currentPath === '/' ? '' : currentPath}`;
+
+  const siteName = globalSEO?.siteName || 'Nexora Tools';
+  const fullTitle = effectiveTitle
+    ? (effectiveTitle.includes(siteName) ? effectiveTitle : `${effectiveTitle} • ${siteName}`)
+    : (globalSEO?.defaultDescription ? `${siteName} • Free Workstation` : DEFAULT_TITLE);
 
   // 1. Update Title
   document.title = fullTitle;
@@ -42,7 +66,7 @@ export const updatePageSEO = ({
     metaDesc.setAttribute('name', 'description');
     document.head.appendChild(metaDesc);
   }
-  metaDesc.setAttribute('content', fullDesc);
+  metaDesc.setAttribute('content', effectiveDesc);
 
   // 3. Update Meta Keywords
   let metaKeywords = document.querySelector('meta[name="keywords"]');
@@ -51,7 +75,7 @@ export const updatePageSEO = ({
     metaKeywords.setAttribute('name', 'keywords');
     document.head.appendChild(metaKeywords);
   }
-  metaKeywords.setAttribute('content', fullKeywords);
+  metaKeywords.setAttribute('content', effectiveKeywords);
 
   // 4. Update Canonical Tag
   let canonical = document.querySelector('link[rel="canonical"]');
@@ -60,9 +84,41 @@ export const updatePageSEO = ({
     canonical.setAttribute('rel', 'canonical');
     document.head.appendChild(canonical);
   }
-  canonical.setAttribute('href', canonicalUrl);
+  canonical.setAttribute('href', effectiveCanonical);
 
-  // 5. Update OpenGraph Tags
+  // 5. Update Robots meta tag if customized
+  if (routeSEO?.robots) {
+    let robotsMeta = document.querySelector('meta[name="robots"]');
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.setAttribute('name', 'robots');
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.setAttribute('content', routeSEO.robots);
+  }
+
+  // 6. Global Webmaster / Analytics Verifications
+  if (globalSEO?.googleVerificationId) {
+    let gMeta = document.querySelector('meta[name="google-site-verification"]');
+    if (!gMeta) {
+      gMeta = document.createElement('meta');
+      gMeta.setAttribute('name', 'google-site-verification');
+      document.head.appendChild(gMeta);
+    }
+    gMeta.setAttribute('content', globalSEO.googleVerificationId);
+  }
+
+  if (globalSEO?.bingVerificationId) {
+    let bMeta = document.querySelector('meta[name="msvalidate.01"]');
+    if (!bMeta) {
+      bMeta = document.createElement('meta');
+      bMeta.setAttribute('name', 'msvalidate.01');
+      document.head.appendChild(bMeta);
+    }
+    bMeta.setAttribute('content', globalSEO.bingVerificationId);
+  }
+
+  // 7. Update OpenGraph Tags
   const setMetaProperty = (property: string, content: string) => {
     let el = document.querySelector(`meta[property="${property}"]`);
     if (!el) {
@@ -73,14 +129,16 @@ export const updatePageSEO = ({
     el.setAttribute('content', content);
   };
 
-  setMetaProperty('og:title', fullTitle);
-  setMetaProperty('og:description', fullDesc);
-  setMetaProperty('og:url', canonicalUrl);
-  setMetaProperty('og:type', 'website');
-  setMetaProperty('og:site_name', 'Nexora Tools');
-  setMetaProperty('og:image', 'https://nexoratools.com/favicon.svg');
+  const ogImage = routeSEO?.ogImage || 'https://nexoratools.com/favicon.svg';
 
-  // 6. Update Twitter Tags
+  setMetaProperty('og:title', fullTitle);
+  setMetaProperty('og:description', effectiveDesc);
+  setMetaProperty('og:url', effectiveCanonical);
+  setMetaProperty('og:type', 'website');
+  setMetaProperty('og:site_name', siteName);
+  setMetaProperty('og:image', ogImage);
+
+  // 8. Update Twitter Tags
   const setMetaName = (name: string, content: string) => {
     let el = document.querySelector(`meta[name="${name}"]`);
     if (!el) {
@@ -93,11 +151,11 @@ export const updatePageSEO = ({
 
   setMetaName('twitter:card', 'summary_large_image');
   setMetaName('twitter:title', fullTitle);
-  setMetaName('twitter:description', fullDesc);
-  setMetaName('twitter:image', 'https://nexoratools.com/favicon.svg');
-  setMetaName('twitter:url', canonicalUrl);
+  setMetaName('twitter:description', effectiveDesc);
+  setMetaName('twitter:image', ogImage);
+  setMetaName('twitter:url', effectiveCanonical);
 
-  // 7. Inject Dynamic JSON-LD Structured Data for Google Rich Snippets & Direct Sitelinks
+  // 9. Dynamic JSON-LD Structured Data
   let schemaScript = document.getElementById('dynamic-tool-jsonld');
   if (!schemaScript) {
     schemaScript = document.createElement('script');
@@ -106,7 +164,8 @@ export const updatePageSEO = ({
     document.head.appendChild(schemaScript);
   }
 
-  const cleanToolName = toolName || (title ? title.split('•')[0].trim() : 'Nexora Tools');
+  const cleanToolName = toolName || routeSEO?.toolName || (effectiveTitle ? effectiveTitle.split('•')[0].trim() : siteName);
+  const effectiveCategory = routeSEO?.categoryName || categoryName;
 
   const jsonLdData = {
     '@context': 'https://schema.org',
@@ -114,10 +173,10 @@ export const updatePageSEO = ({
       {
         '@type': schemaType,
         name: cleanToolName,
-        url: canonicalUrl,
-        applicationCategory: categoryName,
+        url: effectiveCanonical,
+        applicationCategory: effectiveCategory,
         operatingSystem: 'All (Web Browser, Windows, Mac, Android, iOS)',
-        description: fullDesc,
+        description: effectiveDesc,
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -132,7 +191,7 @@ export const updatePageSEO = ({
         ],
         creator: {
           '@type': 'Organization',
-          name: 'Nexora Lab Technologies',
+          name: siteName,
           url: 'https://nexoratools.com',
         },
       },
@@ -148,14 +207,14 @@ export const updatePageSEO = ({
           {
             '@type': 'ListItem',
             position: 2,
-            name: categoryName,
-            item: canonicalUrl,
+            name: effectiveCategory,
+            item: effectiveCanonical,
           },
           {
             '@type': 'ListItem',
             position: 3,
             name: cleanToolName,
-            item: canonicalUrl,
+            item: effectiveCanonical,
           },
         ],
       },

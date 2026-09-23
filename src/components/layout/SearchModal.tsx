@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, CornerDownLeft, Sparkles, ArrowRight } from 'lucide-react';
 import * as Icons from 'lucide-react';
-import { ALL_TOOLS } from '../../data/toolsData';
+import { useSiteConfig } from '../../context/SiteConfigContext';
 import type { ToolItem } from '../../types/tools';
 
 interface SearchModalProps {
@@ -11,6 +11,7 @@ interface SearchModalProps {
 }
 
 export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
+  const { activeTools } = useSiteConfig();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,7 +25,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     }
   }, [isOpen]);
 
-  const filteredTools = ALL_TOOLS.filter((tool) => {
+  const filteredTools = activeTools.filter((tool) => {
     const q = query.toLowerCase();
     return (
       tool.name.toLowerCase().includes(q) ||

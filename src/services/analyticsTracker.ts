@@ -1,9 +1,11 @@
+import { apiService } from './apiService';
+
 /**
- * Privacy-First Local Metrics Tracker
- * Strictly local storage only. No external telemetry or document data is ever transmitted.
+ * Privacy-First Local & Database Metrics Tracker
+ * Strictly local storage & SQLite database metrics. No external telemetry or document data is ever transmitted.
  */
 
-interface LocalStats {
+export interface LocalStats {
   totalProcessed: number;
   passportPhotosCreated: number;
   idCardsMerged: number;
@@ -26,7 +28,7 @@ export function getLocalStats(): LocalStats {
   }
 
   return {
-    totalProcessed: 142, // seeded default for initial display
+    totalProcessed: 142,
     passportPhotosCreated: 58,
     idCardsMerged: 42,
     pdfsGenerated: 26,
@@ -54,4 +56,7 @@ export function incrementStat(
   } catch (e) {
     console.error('Error writing stats:', e);
   }
+
+  // Asynchronously report to SQLite Backend Database
+  apiService.trackTask(type, count).catch(() => {});
 }

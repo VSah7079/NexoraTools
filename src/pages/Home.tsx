@@ -20,12 +20,13 @@ import {
   ShieldAlert,
   Flame,
 } from 'lucide-react';
-import { ALL_TOOLS } from '../data/toolsData';
 import { ToolCard } from '../components/common/ToolCard';
 import type { ToolCategory } from '../types/tools';
 import { usePageSEO } from '../utils/seoHelper';
+import { useSiteConfig } from '../context/SiteConfigContext';
 
 export const Home: React.FC = () => {
+  const { activeTools } = useSiteConfig();
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -49,7 +50,7 @@ export const Home: React.FC = () => {
     { id: 'batch', label: 'Batch Processing', icon: Zap },
   ];
 
-  const filteredTools = ALL_TOOLS.filter((tool) => {
+  const filteredTools = activeTools.filter((tool) => {
     const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory;
     const matchesQuery =
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -59,8 +60,8 @@ export const Home: React.FC = () => {
   });
 
   const getToolCount = (categoryId: ToolCategory | 'all') => {
-    if (categoryId === 'all') return ALL_TOOLS.length;
-    return ALL_TOOLS.filter((t) => t.category === categoryId).length;
+    if (categoryId === 'all') return activeTools.length;
+    return activeTools.filter((t) => t.category === categoryId).length;
   };
 
   const quickSearchTags = [
@@ -339,7 +340,7 @@ export const Home: React.FC = () => {
             {/* Total Count Badge */}
             <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-semibold text-slate-300 shrink-0">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Showing <strong>{filteredTools.length}</strong> of {ALL_TOOLS.length} utilities</span>
+              <span>Showing <strong>{filteredTools.length}</strong> of {activeTools.length} utilities</span>
             </div>
           </div>
 

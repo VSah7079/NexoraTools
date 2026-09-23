@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
+import { SiteConfigProvider } from './context/SiteConfigContext';
+import { AnnouncementBanner } from './components/common/AnnouncementBanner';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { MobileNav } from './components/layout/MobileNav';
@@ -72,26 +74,30 @@ const ScrollToTop: React.FC = () => {
   return null;
 };
 
-export const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  const isAdmin = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
+
   return (
-    <LanguageProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500/30 selection:text-indigo-300 relative overflow-hidden">
-          {/* Ambient Lighting Orbs */}
-          <div className="fixed top-0 left-1/4 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse-subtle" />
-          <div className="fixed top-1/3 right-1/4 translate-x-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10" />
-          <div className="fixed bottom-10 left-1/3 w-[450px] h-[450px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500/30 selection:text-indigo-300 relative overflow-hidden">
+      {/* Ambient Lighting Orbs */}
+      <div className="fixed top-0 left-1/4 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse-subtle" />
+      <div className="fixed top-1/3 right-1/4 translate-x-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="fixed bottom-10 left-1/3 w-[450px] h-[450px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
 
-          <Navbar />
+      {/* Live Announcement Banner (Only on public pages) */}
+      {!isAdmin && <AnnouncementBanner />}
 
-          <main className="flex-1 w-full pt-4 sm:pt-6 pb-24 sm:pb-28 lg:pb-10 relative z-10">
-            <Routes>
-              {/* Home */}
-              <Route path="/" element={<Home />} />
+      {/* Public Navbar (Only on public pages) */}
+      {!isAdmin && <Navbar />}
 
-              {/* Background Remover (Direct SEO routes + Category routes) */}
-              <Route path="/bg-remover" element={<BackgroundRemover />} />
+      <main className={isAdmin ? "flex-1 w-full py-6 relative z-10" : "flex-1 w-full pt-4 sm:pt-6 pb-24 sm:pb-28 lg:pb-10 relative z-10"}>
+        <Routes>
+          {/* Home */}
+          <Route path="/" element={<Home />} />
+
+          {/* Background Remover (Direct SEO routes + Category routes) */}
+          <Route path="/bg-remover" element={<BackgroundRemover />} />
               <Route path="/background-remover" element={<BackgroundRemover />} />
               <Route path="/remove-bg" element={<BackgroundRemover />} />
               <Route path="/remove-background" element={<BackgroundRemover />} />
@@ -299,6 +305,7 @@ export const App: React.FC = () => {
 
               {/* Admin & Info */}
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/*" element={<AdminDashboard />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/terms" element={<TermsOfService />} />
@@ -309,11 +316,23 @@ export const App: React.FC = () => {
             </Routes>
           </main>
 
-          <Footer />
-          <MobileNav />
+          {/* Public Footer & Mobile Navigation (Only on public pages) */}
+          {!isAdmin && <Footer />}
+          {!isAdmin && <MobileNav />}
         </div>
-      </BrowserRouter>
-    </LanguageProvider>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <SiteConfigProvider>
+      <LanguageProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <AppContent />
+        </BrowserRouter>
+      </LanguageProvider>
+    </SiteConfigProvider>
   );
 };
 
